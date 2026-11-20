@@ -1,0 +1,2937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>单词筛记 · Vocab Sieve</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-2: #f0f2f5;
+      --border: #e2e6ec;
+      --text: #18202c;
+      --text-muted: #5f6c7b;
+      --accent: #1d6f5c;
+      --accent-soft: #e6f3ef;
+      --accent-hover: #155748;
+      --warn: #c26d18;
+      --warn-soft: #fdf2e4;
+      --danger: #b9382c;
+      --danger-soft: #fceceb;
+      --info: #2563eb;
+      --info-soft: #eaf1fe;
+      --shadow: 0 2px 10px rgba(16, 24, 40, 0.06);
+      --radius: 10px;
+      --chip-bg: #ffffff;
+      --chip-border: #d8dee6;
+    }
+
+    html.dark {
+      --bg: #14171c;
+      --surface: #1d2128;
+      --surface-2: #252a33;
+      --border: #2f3642;
+      --text: #e8ecf2;
+      --text-muted: #9aa5b5;
+      --accent: #3cb393;
+      --accent-soft: rgba(60, 179, 147, 0.14);
+      --accent-hover: #4ec8a7;
+      --warn: #e5993e;
+      --warn-soft: rgba(229, 153, 62, 0.14);
+      --danger: #e26458;
+      --danger-soft: rgba(226, 100, 88, 0.15);
+      --info: #60a5fa;
+      --info-soft: rgba(96, 165, 250, 0.15);
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+      --chip-bg: #222730;
+      --chip-border: #353d4b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Top Header */
+    .topbar {
+      position: relative;
+      z-index: 50;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .topbar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      flex-wrap: nowrap;
+      min-width: 0;
+    }
+    .book-tabs {
+      display: inline-flex;
+      flex-shrink: 0;
+      background: var(--surface-2);
+      border-radius: 7px;
+      padding: 2px;
+      border: 1px solid var(--border);
+    }
+    .book-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .book-tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .unit-select-compact {
+      min-width: 80px;
+      max-width: 185px;
+      flex: 0 1 185px;
+      text-overflow: ellipsis;
+    }
+    .search-wrap {
+      flex-shrink: 0;
+    }
+    .search-wrap input[type="text"] {
+      width: 96px;
+      transition: width 0.18s ease, border-color 0.15s;
+    }
+    .search-wrap input[type="text"]:focus {
+      width: 152px;
+    }
+
+    select, input[type="text"], textarea {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      outline: none;
+      font-family: inherit;
+    }
+    select:focus, input[type="text"]:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .spacer { flex: 1; min-width: 4px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.14s;
+      user-select: none;
+    }
+    .btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #fff;
+    }
+    .btn-warn {
+      background: var(--warn-soft);
+      border-color: var(--warn);
+      color: var(--warn);
+    }
+    .btn-toggle.is-on {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .btn-sm { padding: 3px 7px; font-size: 11.5px; }
+
+    /* Top Progress Line & Popover Menus */
+    .top-progress-line {
+      height: 2px;
+      width: 100%;
+      background: var(--surface-2);
+      overflow: hidden;
+    }
+    .top-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--info));
+      transition: width 0.25s ease;
+    }
+    .top-more-menu, .stage-pop-menu {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .top-more-menu > summary, .stage-pop-menu > summary {
+      list-style: none;
+    }
+    .top-more-menu > summary::-webkit-details-marker,
+    .stage-pop-menu > summary::-webkit-details-marker {
+      display: none;
+    }
+    .more-popover, .stage-popover {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      width: 288px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+      z-index: 150;
+    }
+    .stage-popover { width: 268px; }
+    .popover-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .popover-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 0;
+    }
+    .popover-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .popover-help {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .pop-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .pop-toggles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    /* Stats Strip (inside popover) */
+    .stats-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface-2);
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+    .stat-pill b { color: var(--text); font-weight: 600; }
+    .stat-pill.accent b { color: var(--accent); }
+    .stat-pill.warn b { color: var(--warn); }
+    .stat-pill.info b { color: var(--info); }
+
+    /* Stage Nav */
+    .stage-nav {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 4px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .stage-btn {
+      flex: 1 1 0;
+      justify-content: center;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 4px 6px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .stage-btn:hover { background: var(--surface-2); color: var(--text); }
+    .stage-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(29, 111, 92, 0.25);
+    }
+    .stage-badge {
+      font-size: 10.5px;
+      padding: 0 5px;
+      border-radius: 99px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+    }
+    .stage-btn.active .stage-badge {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* Main Content */
+    .main-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px 14px;
+      position: relative;
+    }
+
+    .toolbar-inline {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .help-tip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 99px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: help;
+      flex-shrink: 0;
+    }
+    .hint-text { font-size: 11.5px; color: var(--text-muted); }
+
+    /* Word Sieve Wall (Stages 1, 3, 4) */
+    .unit-section {
+      margin-bottom: 14px;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 220px;
+    }
+    .unit-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 4px 2px 6px;
+      border-bottom: 1px dashed var(--border);
+      margin-bottom: 8px;
+    }
+    .word-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+      gap: 6px;
+    }
+    .word-grid.density-ultra {
+      grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+      gap: 4px;
+    }
+    .word-grid.density-relaxed {
+      grid-template-columns: repeat(auto-fill, minmax(154px, 1fr));
+      gap: 8px;
+    }
+
+    .word-chip {
+      position: relative;
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      border-radius: 7px;
+      padding: 7px 9px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      transition: transform 0.14s ease, opacity 0.14s ease, border-color 0.12s, background 0.12s;
+    }
+    .density-ultra .word-chip { padding: 4px 7px; font-size: 12px; border-radius: 5px; }
+    .word-chip:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .word-chip.vanishing {
+      transform: scale(0.84);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .word-chip.is-known {
+      opacity: 0.65;
+      background: var(--surface-2);
+      text-decoration: line-through;
+    }
+    .word-chip.is-starred {
+      border-color: var(--warn);
+      background: var(--warn-soft);
+    }
+    .word-chip.is-demoted {
+      border-color: var(--danger);
+      background: var(--danger-soft);
+    }
+    .word-chip.is-cursor {
+      outline: 2px solid var(--info);
+      outline-offset: 1px;
+      box-shadow: 0 0 0 3px var(--info-soft);
+    }
+    .chip-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chip-icons {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .chip-star { color: var(--warn); }
+
+    /* Stage 3 Direction Switcher & Zh->En Grid */
+    .dir-switch {
+      display: inline-flex;
+      flex-shrink: 0;
+      background: var(--surface-2);
+      border-radius: 7px;
+      padding: 2px;
+      border: 1px solid var(--border);
+    }
+    .dir-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 2.5px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.14s;
+    }
+    .dir-tab:hover:not(.active) {
+      color: var(--text);
+    }
+    .dir-tab.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+    .word-grid.mode-zh2en {
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 7px;
+    }
+    .word-grid.mode-zh2en.density-ultra {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 5px;
+    }
+    .word-grid.mode-zh2en.density-relaxed {
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 9px;
+    }
+    .word-grid.mode-zh2en .word-chip {
+      align-items: flex-start;
+      padding: 8px 10px;
+      font-size: 12.5px;
+      line-height: 1.42;
+    }
+    .word-grid.mode-zh2en .chip-label {
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-word;
+    }
+    .chip-pos {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 0 4px;
+      border-radius: 3px;
+      margin-right: 4px;
+      vertical-align: 0.5px;
+    }
+    .chip-pos.is-en-fallback {
+      color: var(--info);
+      background: var(--info-soft);
+    }
+    .chip-pos.is-empty-fallback {
+      color: var(--text-muted);
+      background: var(--surface-2);
+    }
+
+    /* Peek Tooltip */
+    .peek-tooltip {
+      position: fixed;
+      z-index: 2000;
+      max-width: 300px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      pointer-events: none;
+      display: none;
+      font-size: 12px;
+    }
+    .peek-tooltip.show { display: block; }
+    .peek-word { font-weight: 700; font-size: 13.5px; color: var(--accent); }
+    .peek-ipa { font-size: 11.5px; color: var(--text-muted); margin-bottom: 3px; }
+    .peek-zh { color: var(--text); white-space: pre-line; }
+    .peek-tooltip.is-zh2en-answer .peek-word {
+      font-size: 15.5px;
+    }
+    .peek-root {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+      font-size: 11px;
+      color: var(--accent);
+      line-height: 1.4;
+      display: none;
+    }
+
+    /* Stage 2: Study Cards */
+    .root-banner {
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 8px 12px;
+      margin: 12px 0 8px;
+    }
+    .root-banner-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 2px;
+    }
+    .root-banner-desc {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .study-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px 14px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      content-visibility: auto;
+      contain-intrinsic-size: auto 260px;
+    }
+    .study-body.is-masked {
+      position: relative;
+      cursor: pointer;
+    }
+    .study-body.is-masked .maskable {
+      filter: blur(7px);
+      opacity: 0.35;
+      user-select: none;
+      transition: filter 0.16s, opacity 0.16s;
+    }
+    .study-body.is-masked::after {
+      content: "点击展开中文与英文释义（自测模式）";
+      position: absolute;
+      inset: 10px 0 auto 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 6px 12px;
+      border-radius: 6px;
+      width: fit-content;
+      margin: 0 auto;
+    }
+    .unit-bottom-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .study-card-head {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .study-word {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .ipa-tag {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: "Lucida Sans Unicode", "Arial Unicode MS", sans-serif;
+    }
+    .respell-tag {
+      font-size: 11.5px;
+      background: var(--info-soft);
+      color: var(--info);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .pos-tag {
+      font-size: 11px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .study-block { margin-top: 8px; }
+    .study-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .zh-meaning {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: pre-line;
+    }
+    .en-meaning {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .context-box {
+      background: var(--surface-2);
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .study-root-box {
+      background: var(--surface-2);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 7px 7px 0;
+      padding: 8px 12px;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .study-root-breakdown {
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .study-root-etym {
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .root-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(29, 111, 92, 0.14);
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .etym-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(140, 100, 40, 0.12);
+      color: #936015;
+      flex-shrink: 0;
+    }
+    .hl-word {
+      background: rgba(29, 111, 92, 0.16);
+      color: var(--accent);
+      font-weight: 600;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+    .example-item {
+      padding: 5px 8px;
+      border-left: 2px solid var(--border);
+      margin-bottom: 5px;
+      font-size: 12.5px;
+    }
+    .example-src {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-left: 5px;
+    }
+    .example-zh {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .cognate-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 4px;
+    }
+    .cognate-chip {
+      font-size: 11.5px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text);
+    }
+    .cognate-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    .mnemonic-box {
+      width: 100%;
+      min-height: 44px;
+      resize: vertical;
+      margin-top: 4px;
+    }
+
+    /* Focus Card Nav */
+    .focus-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    /* Stage 5: Listening Mode */
+    .listen-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 16px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+    .listen-word-display {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      min-height: 44px;
+      margin: 10px 0 4px;
+    }
+    .listen-sub-display {
+      font-size: 13px;
+      color: var(--text-muted);
+      min-height: 24px;
+      margin-bottom: 12px;
+    }
+    .progress-track {
+      width: 100%;
+      max-width: 440px;
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 0 auto 14px;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--accent);
+      transition: width 0.08s linear;
+    }
+    .progress-fill.urgent { background: var(--warn); }
+    .listen-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tray-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    @media (min-width: 720px) {
+      .tray-grid { grid-template-columns: 1.4fr 1fr; }
+    }
+    .tray-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+    }
+    .tray-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .missed-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: var(--danger-soft);
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 3000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal-card {
+      width: 100%;
+      max-width: 580px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.28);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 4000;
+      background: #1f2937;
+      color: #fff;
+      padding: 7px 12px;
+      border-radius: 7px;
+      font-size: 12px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.2s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- Header -->
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="book-tabs" id="book-tabs"></div>
+      <select id="unit-select" class="unit-select-compact" title="选择单元/章节"></select>
+      <div class="spacer"></div>
+      <div class="search-wrap">
+        <input type="text" id="search-input" placeholder="搜索..." />
+      </div>
+      <button class="btn btn-sm" id="btn-undo" title="撤销上一步 (Cmd+Z)" disabled>↶ 撤销</button>
+      <button class="btn btn-sm" id="btn-reload" onclick="window.location.reload()" title="刷新面板">↻</button>
+      <details class="top-more-menu" id="top-more-menu">
+        <summary class="btn btn-sm" title="统计明细、导出与外观设置">
+          <span id="stat-mini-text">0%</span>
+          <span style="opacity:0.55;">·</span>
+          <span>⋯</span>
+        </summary>
+        <div class="more-popover">
+          <div class="popover-section-title">当前范围进度统计</div>
+          <div class="stats-strip" id="stats-strip"></div>
+          <div class="popover-divider"></div>
+          <div class="popover-actions">
+            <button class="btn btn-sm" id="btn-export-md" title="复制当前待攻克与星标词表为 Markdown">导出 Markdown 词表</button>
+            <button class="btn btn-sm" id="btn-theme" title="切换深浅色">切换深浅色主题</button>
+          </div>
+          <div class="popover-divider"></div>
+          <div class="popover-help">
+            <div><b>筛词快捷键：</b><code>←/→/↑/↓</code> 或 <code>HJKL</code> 移游标 · <code>Space</code> 筛除 · <code>S</code> 星标/打回 · <code>V</code> 发音释义 · <code>双击</code> 详情</div>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="top-progress-line"><div class="top-progress-fill" id="top-progress-fill"></div></div>
+  </header>
+
+  <!-- 5-Stage Navigation -->
+  <nav class="stage-nav" id="stage-nav">
+    <button class="stage-btn" data-stage="triage">① 初筛 <span class="stage-badge" id="badge-triage">0</span></button>
+    <button class="stage-btn" data-stage="study">② 精学 <span class="stage-badge" id="badge-study">0</span></button>
+    <button class="stage-btn" data-stage="sieve2">③ 二筛 <span class="stage-badge" id="badge-sieve2">0</span></button>
+    <button class="stage-btn" data-stage="review">④ 复习 <span class="stage-badge" id="badge-review">0</span></button>
+    <button class="stage-btn" data-stage="listen">⑤ 听词 <span class="stage-badge" id="badge-listen">0</span></button>
+  </nav>
+
+  <!-- Main Workspace -->
+  <main class="main-area" id="main-area"></main>
+</div>
+
+<!-- Hover Peek Tooltip -->
+<div class="peek-tooltip" id="peek-tooltip">
+  <div class="peek-word" id="peek-word"></div>
+  <div class="peek-ipa" id="peek-ipa"></div>
+  <div class="peek-zh" id="peek-zh"></div>
+  <div class="peek-root" id="peek-root"></div>
+</div>
+
+<!-- Word Detail Modal -->
+<div class="modal-backdrop" id="detail-modal">
+  <div class="modal-card" id="detail-modal-body"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(function() {
+  // 1. Theme Sync (Antigravity sidecar + local toggle)
+  const savedTheme = localStorage.getItem('vocab_sieve_theme');
+  if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+  window.addEventListener('message', (ev) => {
+    if (ev.data && ev.data.type === 'theme') {
+      const isDark = ev.data.theme === 'dark' || (ev.data.vars && String(ev.data.vars['--background'] || '').startsWith('#1'));
+      if (!localStorage.getItem('vocab_sieve_theme')) {
+        document.documentElement.classList.toggle('dark', isDark);
+      }
+    }
+  });
+
+  // 2. Tokenized API helper
+  const urlParams = new URLSearchParams(window.location.search);
+  const sidecarToken = urlParams.get('token') || window.__SIDECAR_TOKEN__ || '';
+  function withToken(url) {
+    if (!sidecarToken) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(sidecarToken);
+  }
+  async function apiFetch(url, options = {}) {
+    const headers = new Headers(options.headers || {});
+    headers.set('Content-Type', 'application/json');
+    if (sidecarToken) headers.set('X-Sidecar-Token', sidecarToken);
+    const resp = await fetch(withToken(url), { ...options, headers });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return resp.json();
+  }
+
+  // 3. Global App State
+  const state = {
+    manifest: window.__INITIAL_MANIFEST__ || { books: [] },
+    progress: window.__INITIAL_PROGRESS__ || { settings: {}, words: {} },
+    booksCache: {},
+    activeBookId: 'mwvb',
+    activeStage: 'triage',
+    activeUnit: 'ALL',
+    searchQuery: '',
+    // View options
+    density: 'compact', // ultra | compact | relaxed
+    groupByUnit: true,
+    triageShowKnown: false,
+    studyShowAll: false,
+    studyMask: false,
+    studyMode: 'list', // list | focus
+    focusIndex: 0,
+    focusReveal: true,
+    sieve2Peek: true,
+    sieve2Direction: 'en2zh', // 'en2zh' (看英回中) | 'zh2en' (看中回英)
+    sieve2Order: null, // shuffled ids
+    reviewSource: 'stage3', // stage3 | triage | hard | all_mastered | random80
+    reviewOrder: null,
+    reviewDemoteClick: false,
+    reviewClearedIds: new Set(),
+    cursorWid: null,
+    // Undo stack (up to 50)
+    undoStack: [],
+    // Listening mode state
+    listen: {
+      scope: 'learning', // learning | unit_all | stage3 | hard | random50
+      intervalSec: 2.0,
+      repeat: 1,
+      voice: 'Samantha',
+      blind: true,
+      flashOnMiss: true,
+      replayOnMiss: true,
+      soundFx: true,
+      running: false,
+      paused: false,
+      queue: [],
+      index: 0,
+      passed: [],
+      missed: [],
+      awaitingAction: false,
+      timerHandle: null,
+      tickHandle: null,
+      countdownStart: 0,
+      flashingMiss: false,
+      currentAudio: null
+    }
+  };
+
+  // Restore saved settings
+  const s = state.progress.settings || {};
+  if (s.activeBook) state.activeBookId = s.activeBook;
+  if (s.activeStage) state.activeStage = s.activeStage;
+  if (s.activeUnit) state.activeUnit = s.activeUnit;
+  if (s.density) state.density = s.density;
+  if (s.sieve2Direction === 'en2zh' || s.sieve2Direction === 'zh2en') {
+    state.sieve2Direction = s.sieve2Direction;
+  }
+  if (s.listenIntervalSec) state.listen.intervalSec = Number(s.listenIntervalSec);
+  if (s.listenRepeat) state.listen.repeat = Number(s.listenRepeat);
+  if (s.listenVoice) state.listen.voice = s.listenVoice;
+  if (typeof s.listenBlind === 'boolean') state.listen.blind = s.listenBlind;
+  if (typeof s.listenFlashOnMiss === 'boolean') state.listen.flashOnMiss = s.listenFlashOnMiss;
+  if (typeof s.listenReplayOnMiss === 'boolean') state.listen.replayOnMiss = s.listenReplayOnMiss;
+  if (typeof s.listenSoundFx === 'boolean') state.listen.soundFx = s.listenSoundFx;
+
+  // 4. Persistence & Undo
+  let pendingWordPatches = {};
+  let saveTimer = null;
+  let toastTimer = null;
+
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2100);
+  }
+
+  function scheduleSave(immediate = false) {
+    clearTimeout(saveTimer);
+    const flush = async () => {
+      const patches = pendingWordPatches;
+      pendingWordPatches = {};
+      try {
+        await apiFetch('/api/progress', {
+          method: 'POST',
+          body: JSON.stringify({
+            settings: {
+              activeBook: state.activeBookId,
+              activeStage: state.activeStage,
+              activeUnit: state.activeUnit,
+              density: state.density,
+              sieve2Direction: state.sieve2Direction,
+              listenIntervalSec: state.listen.intervalSec,
+              listenRepeat: state.listen.repeat,
+              listenVoice: state.listen.voice,
+              listenBlind: state.listen.blind,
+              listenFlashOnMiss: state.listen.flashOnMiss,
+              listenReplayOnMiss: state.listen.replayOnMiss,
+              listenSoundFx: state.listen.soundFx
+            },
+            words: patches
+          })
+        });
+      } catch (e) {
+        console.warn('保存进度失败:', e);
+      }
+    };
+    if (immediate) flush();
+    else saveTimer = setTimeout(flush, 350);
+  }
+
+  function getWordRec(wordId) {
+    return state.progress.words[wordId] || {};
+  }
+
+  function updateWordRec(wordId, patch, recordUndo = true) {
+    const prev = state.progress.words[wordId] ? { ...state.progress.words[wordId] } : null;
+    if (recordUndo) {
+      state.undoStack.push({ wordId, prev });
+      if (state.undoStack.length > 50) state.undoStack.shift();
+      document.getElementById('btn-undo').disabled = state.undoStack.length === 0;
+    }
+    const next = { ...(prev || {}), ...patch, updatedAt: new Date().toISOString() };
+    state.progress.words[wordId] = next;
+    pendingWordPatches[wordId] = next;
+    scheduleSave();
+    renderHeaderStats();
+  }
+
+  function performUndo() {
+    if (state.undoStack.length === 0) return;
+    const { wordId, prev } = state.undoStack.pop();
+    if (prev === null) {
+      delete state.progress.words[wordId];
+      pendingWordPatches[wordId] = {};
+    } else {
+      state.progress.words[wordId] = prev;
+      pendingWordPatches[wordId] = prev;
+    }
+    document.getElementById('btn-undo').disabled = state.undoStack.length === 0;
+    scheduleSave();
+    renderAll();
+    showToast('已撤销上一步操作');
+  }
+
+  // 5. Audio Pronunciation & Lookahead Pre-fetching + WebAudio Earcons
+  let activeAudioEl = null;
+  let audioCtx = null;
+  const audioBlobCache = new Map(); // cacheKey -> objectURL
+  const inflightTts = new Map();    // cacheKey -> Promise<string|null>
+
+  function playFeedbackTone(kind) {
+    if (!state.listen.soundFx) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      const playNote = (freq, start, dur, type = 'sine', gainVal = 0.08) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(gainVal, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + dur);
+      };
+      if (kind === 'pass') {
+        playNote(660, now, 0.08, 'sine', 0.07);
+        playNote(880, now + 0.06, 0.11, 'sine', 0.07);
+      } else {
+        playNote(240, now, 0.14, 'triangle', 0.06);
+      }
+    } catch (_) {}
+  }
+
+  function stopAudio() {
+    if (activeAudioEl) {
+      activeAudioEl.pause();
+      activeAudioEl = null;
+    }
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  function speakWebSpeech(text, voiceName) {
+    return new Promise((resolve) => {
+      if (!window.speechSynthesis) { resolve(); return; }
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = voiceName === 'Daniel' ? 'en-GB' : 'en-US';
+      u.rate = 0.95;
+      u.onend = () => resolve();
+      u.onerror = () => resolve();
+      window.speechSynthesis.speak(u);
+    });
+  }
+
+  async function fetchTtsObjectUrl(text, voice = state.listen.voice) {
+    const clean = String(text || '').replace(/\([^)]*\)/g, '').trim();
+    if (!clean || voice === 'WEB') return null;
+    const key = `${voice}|${clean}`;
+    if (audioBlobCache.has(key)) return audioBlobCache.get(key);
+    if (inflightTts.has(key)) return inflightTts.get(key);
+
+    const p = (async () => {
+      try {
+        const res = await apiFetch('/api/tts', {
+          method: 'POST',
+          body: JSON.stringify({ text: clean, voice, rate: 175 })
+        });
+        if (res && res.status === 'ok' && res.audioBase64) {
+          const bin = atob(res.audioBase64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          const url = URL.createObjectURL(new Blob([bytes], { type: res.mimeType || 'audio/mpeg' }));
+          if (audioBlobCache.size >= 150) {
+            const oldKey = audioBlobCache.keys().next().value;
+            URL.revokeObjectURL(audioBlobCache.get(oldKey));
+            audioBlobCache.delete(oldKey);
+          }
+          audioBlobCache.set(key, url);
+          return url;
+        }
+      } catch (_) {}
+      return null;
+    })();
+    inflightTts.set(key, p);
+    try {
+      return await p;
+    } finally {
+      inflightTts.delete(key);
+    }
+  }
+
+  function prefetchUpcomingAudio(words, startIdx, count = 3, voice = state.listen.voice) {
+    if (!words || voice === 'WEB') return;
+    for (let i = 0; i < count; i++) {
+      const w = words[startIdx + i];
+      if (w) fetchTtsObjectUrl(w.cleanWord || w.word, voice);
+    }
+  }
+
+  async function playTextAudio(text, voice = state.listen.voice, repeat = 1) {
+    stopAudio();
+    const clean = String(text || '').replace(/\([^)]*\)/g, '').trim();
+    if (!clean) return;
+    if (voice === 'WEB') {
+      for (let i = 0; i < repeat; i++) {
+        await speakWebSpeech(clean, 'Samantha');
+      }
+      return;
+    }
+    const blobUrl = await fetchTtsObjectUrl(clean, voice);
+    if (blobUrl) {
+      for (let i = 0; i < repeat; i++) {
+        await new Promise((resolve) => {
+          const audio = new Audio(blobUrl);
+          activeAudioEl = audio;
+          audio.onended = resolve;
+          audio.onerror = resolve;
+          audio.play().catch(resolve);
+        });
+      }
+      return;
+    }
+    for (let i = 0; i < repeat; i++) {
+      await speakWebSpeech(clean, voice);
+    }
+  }
+
+  // 6. Book Loading & O(1) Hash Indexing
+  async function ensureBookLoaded(bookId) {
+    if (state.booksCache[bookId]) return state.booksCache[bookId];
+    const data = await apiFetch(`/api/book?id=${encodeURIComponent(bookId)}`);
+    const wordMap = new Map();
+    const wordLowerMap = new Map();
+    for (const w of data.words || []) {
+      wordMap.set(w.id, w);
+      wordLowerMap.set(w.word.toLowerCase(), w);
+      if (w.cleanWord && !wordLowerMap.has(w.cleanWord)) {
+        wordLowerMap.set(w.cleanWord, w);
+      }
+    }
+    data.wordMap = wordMap;
+    data.wordLowerMap = wordLowerMap;
+    state.booksCache[bookId] = data;
+    return data;
+  }
+
+  function getActiveBook() {
+    return state.booksCache[state.activeBookId] || null;
+  }
+
+  function getScopedWords() {
+    const book = getActiveBook();
+    if (!book) return [];
+    let list = book.words || [];
+    if (state.activeUnit !== 'ALL') {
+      list = list.filter((w) => w.unit === state.activeUnit);
+    }
+    const q = state.searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (w) =>
+          w.word.toLowerCase().includes(q) ||
+          (w.zhMeaning || '').toLowerCase().includes(q) ||
+          (w.enMeaning || '').toLowerCase().includes(q) ||
+          (w.rootGroup || '').toLowerCase().includes(q) ||
+          (w.rootBreakdown || '').toLowerCase().includes(q) ||
+          (w.etymology || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }
+
+  function isKnown(w) {
+    const r = getWordRec(w.id);
+    return r.status === 'known';
+  }
+  function isMastered(w) {
+    const r = getWordRec(w.id);
+    return r.status === 'mastered';
+  }
+  function isLearningPool(w) {
+    const r = getWordRec(w.id);
+    return r.status !== 'known' && r.status !== 'mastered';
+  }
+
+  function shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function highlightWordInText(text, cleanWord) {
+    const escaped = escHtml(text);
+    if (!cleanWord || cleanWord.length < 3) return escaped;
+    const re = new RegExp(`\\b(${cleanWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\w*)\\b`, 'gi');
+    return escaped.replace(re, '<span class="hl-word">$1</span>');
+  }
+
+  const POS_ABBR_MAP = {
+    'noun': 'n.',
+    'plural noun': 'n.',
+    'proper noun': 'n.',
+    'adjective': 'adj.',
+    'adjective,': 'adj.',
+    'adverb': 'adv.',
+    'transitive verb': 'vt.',
+    'intransitive verb': 'vi.',
+    'transitive or intransitive verb': 'v.',
+    'intransitive or transitive verb': 'v.',
+    'reflexive verb': 'v.',
+    'preposition': 'prep.',
+    'abbreviation': 'abbr.',
+    'exclamation': 'excl.',
+    'combining form': 'comb.'
+  };
+
+  function maskTargetWord(text, cleanWord) {
+    const stem = String(cleanWord || '').trim();
+    if (!stem || stem.length < 3) return text;
+    const escaped = stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`\\b${escaped}\\w*\\b`, 'gi');
+    return String(text || '').replace(re, '___');
+  }
+
+  function formatZhPromptForChip(w) {
+    const zhRaw = (w.zhMeaning || '').trim();
+    const enRaw = (w.enMeaning || '').trim();
+    const cleanWord = (w.cleanWord || w.word || '').trim();
+
+    if (zhRaw.includes('[WPME 同族派生]')) {
+      const m = zhRaw.match(/\(([^)]+)\)/);
+      const roleZh = m ? m[1].trim() : '';
+      let enClean = enRaw
+        .replace(/^\[[^\]]+\]\s*/, '')
+        .replace(/related to\s+[A-Za-z\-']+:\s*/i, '');
+      enClean = maskTargetWord(enClean, cleanWord).trim();
+      return {
+        pos: roleZh || '派生',
+        text: enClean || roleZh || '同族派生词',
+        kind: enClean ? 'en' : 'zh'
+      };
+    }
+
+    if (zhRaw) {
+      let posTag = '';
+      const mPos = zhRaw.match(/^\[([^\]]+)\]\s*/);
+      if (mPos) {
+        posTag = POS_ABBR_MAP[mPos[1].trim().toLowerCase()] || '';
+      }
+
+      const lines = zhRaw.split('\n').map((l) => l.trim()).filter(Boolean);
+      const cleanedLines = [];
+      lines.forEach((origLine, idx) => {
+        let ln = origLine;
+        if (idx === 0 && posTag) {
+          ln = ln.replace(/^\[[^\]]+\]\s*/, '');
+        }
+        ln = ln.replace(/（派生自\s+[^:：]+[:：]\s*(?:\[[^\]]+\]\s*)?/g, '（');
+        ln = ln.replace(/\[([^\]]+)\]\s*/g, (_, tag) => {
+          const short = POS_ABBR_MAP[tag.trim().toLowerCase()] || '';
+          return short ? `${short} ` : '';
+        });
+        for (let pass = 0; pass < 3; pass++) {
+          const next = ln.replace(/\([A-Za-z\u00C0-\u00FF0-9\s,;:'"’‘./\-&?!+_]+\)\s*/g, '');
+          if (next === ln) break;
+          ln = next;
+        }
+        ln = ln
+          .replace(/\s*\/\s*/g, ' / ')
+          .replace(/(?:\s*\/\s*){2,}/g, ' / ')
+          .replace(/^\s*\/\s*|\s*\/\s*$/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        if (ln) cleanedLines.push(ln);
+      });
+
+      const joined = maskTargetWord(cleanedLines.join('；'), cleanWord).trim();
+      if (joined) {
+        return { pos: posTag, text: joined, kind: 'zh' };
+      }
+    }
+
+    if (enRaw) {
+      const text = maskTargetWord(enRaw, cleanWord).trim();
+      const mappedPos = POS_ABBR_MAP[(w.pos || '').trim().toLowerCase()];
+      return { pos: mappedPos || 'EN', text, kind: 'en' };
+    }
+
+    return { pos: '无释义', text: w.word, kind: 'empty' };
+  }
+
+  // 7. Render Controls & Stats
+  function renderBookTabs() {
+    const wrap = document.getElementById('book-tabs');
+    const books = state.manifest.books || [];
+    wrap.innerHTML = books
+      .map(
+        (b) =>
+          `<button class="book-tab ${b.id === state.activeBookId ? 'active' : ''}" data-book="${escHtml(b.id)}">${escHtml(b.shortTitle || b.title)}</button>`
+      )
+      .join('');
+    wrap.querySelectorAll('.book-tab').forEach((btn) => {
+      btn.onclick = async () => {
+        const id = btn.dataset.book;
+        if (id === state.activeBookId) return;
+        stopListenSession();
+        state.activeBookId = id;
+        state.activeUnit = 'ALL';
+        state.sieve2Order = null;
+        state.reviewOrder = null;
+        state.reviewClearedIds.clear();
+        scheduleSave();
+        await ensureBookLoaded(id);
+        renderAll();
+      };
+    });
+  }
+
+  function renderUnitSelector() {
+    const sel = document.getElementById('unit-select');
+    const book = getActiveBook();
+    if (!book) { sel.innerHTML = ''; return; }
+    const words = book.words || [];
+    const allLearning = words.filter(isLearningPool).length;
+    let opts = `<option value="ALL">全部单元 (${allLearning}/${words.length} 待攻克)</option>`;
+    for (const u of book.units || []) {
+      const uWords = words.filter((w) => w.unit === u.id);
+      const uLearn = uWords.filter(isLearningPool).length;
+      opts += `<option value="${escHtml(u.id)}" ${state.activeUnit === u.id ? 'selected' : ''}>${escHtml(u.title)} [${uLearn}/${uWords.length}]</option>`;
+    }
+    sel.innerHTML = opts;
+    sel.value = state.activeUnit;
+  }
+
+  function renderHeaderStats() {
+    const scoped = getScopedWords();
+    const total = scoped.length;
+    const known = scoped.filter(isKnown).length;
+    const mastered = scoped.filter(isMastered).length;
+    const learning = scoped.filter(isLearningPool).length;
+    const starred = scoped.filter((w) => getWordRec(w.id).starred).length;
+    const donePct = total ? Math.round(((known + mastered) / total) * 100) : 0;
+
+    const miniEl = document.getElementById('stat-mini-text');
+    if (miniEl) miniEl.textContent = `${donePct}%${starred ? ` ★${starred}` : ''}`;
+    const lineEl = document.getElementById('top-progress-fill');
+    if (lineEl) lineEl.style.width = `${donePct}%`;
+
+    document.getElementById('stats-strip').innerHTML = `
+      <span class="stat-pill">范围总词 <b>${total}</b></span>
+      <span class="stat-pill">初筛已认 <b>${known}</b></span>
+      <span class="stat-pill warn">待攻克 <b>${learning}</b></span>
+      <span class="stat-pill accent">二筛掌握 <b>${mastered}</b></span>
+      <span class="stat-pill info">星标 <b>${starred}</b></span>
+    `;
+
+    // Stage badges
+    document.getElementById('badge-triage').textContent = learning;
+    document.getElementById('badge-study').textContent = learning;
+    document.getElementById('badge-sieve2').textContent = learning;
+    document.getElementById('badge-review').textContent = known + mastered;
+    document.getElementById('badge-listen').textContent = total;
+  }
+
+  function renderStageNav() {
+    document.querySelectorAll('.stage-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.stage === state.activeStage);
+    });
+  }
+
+  // 8. Stage Renderers
+  function renderStage() {
+    const main = document.getElementById('main-area');
+    const book = getActiveBook();
+    if (!book) {
+      main.innerHTML = '<div class="empty-state">正在加载词库...</div>';
+      return;
+    }
+    if (state.activeStage === 'triage') renderTriageStage(main);
+    else if (state.activeStage === 'study') renderStudyStage(main);
+    else if (state.activeStage === 'sieve2') renderSieve2Stage(main);
+    else if (state.activeStage === 'review') renderReviewStage(main);
+    else if (state.activeStage === 'listen') renderListenStage(main);
+  }
+
+  function createWordChipHtml(w, options = {}) {
+    const rec = getWordRec(w.id);
+    const cls = ['word-chip'];
+    if (rec.status === 'known' && options.markKnown) cls.push('is-known');
+    if (rec.starred) cls.push('is-starred');
+    if (rec.review_fail_count > 0 && options.highlightHard) cls.push('is-demoted');
+    if (state.cursorWid === w.id) cls.push('is-cursor');
+
+    const isZh2En = options.displayMode === 'zh2en';
+    let labelHtml = escHtml(w.word);
+    let tipTitle = '左键筛除 · 右键星标/打回 · 双击详情 · 方向键/Space 飞筛';
+    if (isZh2En) {
+      const prompt = formatZhPromptForChip(w);
+      const posCls = prompt.kind === 'en'
+        ? 'chip-pos is-en-fallback'
+        : prompt.kind === 'empty'
+          ? 'chip-pos is-empty-fallback'
+          : 'chip-pos';
+      labelHtml = `${prompt.pos ? `<span class="${posCls}">${escHtml(prompt.pos)}</span>` : ''}${escHtml(prompt.text)}`;
+      tipTitle = '看中文回顾英文 · 左键筛除 · 右键星标 · 双击详情 · V 键核对发音';
+    }
+
+    return `
+      <div class="${cls.join(' ')}" data-wid="${escHtml(w.id)}" title="${tipTitle}">
+        <span class="chip-label">${labelHtml}</span>
+        <span class="chip-icons">
+          ${rec.starred ? '<span class="chip-star">★</span>' : ''}
+          ${rec.mnemonic ? '<span title="有个人助记">✎</span>' : ''}
+        </span>
+      </div>
+    `;
+  }
+
+  // Active sieve stage action handlers (invoked by single root delegator & keyboard cursor)
+  let currentChipHandlers = { left: null, right: null, peek: false };
+
+  function setChipHandlers(leftFn, rightFn, peek = false) {
+    currentChipHandlers = { left: leftFn, right: rightFn, peek };
+  }
+
+  // --- Stage 1: Initial Triage ---
+  function renderTriageStage(main) {
+    const scoped = getScopedWords();
+    const list = state.triageShowKnown ? scoped : scoped.filter(isLearningPool);
+
+    let html = `
+      <div class="toolbar-inline">
+        <select id="triage-density" title="词墙密度">
+          <option value="ultra" ${state.density === 'ultra' ? 'selected' : ''}>超密</option>
+          <option value="compact" ${state.density === 'compact' ? 'selected' : ''}>标准</option>
+          <option value="relaxed" ${state.density === 'relaxed' ? 'selected' : ''}>宽松</option>
+        </select>
+        <button class="btn btn-sm btn-toggle ${state.groupByUnit ? 'is-on' : ''}" id="btn-triage-group">按章分组</button>
+        <button class="btn btn-sm btn-toggle ${state.triageShowKnown ? 'is-on' : ''}" id="btn-triage-known">含已认词</button>
+        <span class="help-tip" title="左键或 Space 点认识的词消失；右键或 S 键标星；V 键发音看释义；双击看详情">?</span>
+        <div class="spacer"></div>
+        <button class="btn btn-primary btn-sm" id="btn-goto-study">去② 精学 →</button>
+      </div>
+    `;
+
+    if (list.length === 0) {
+      html += `<div class="empty-state">当前范围内没有未筛选的单词！可以切换单元，或点击右上角“显示已认识词”核查。</div>`;
+      main.innerHTML = html;
+    } else if (state.groupByUnit && state.activeUnit === 'ALL') {
+      const byUnit = new Map();
+      for (const w of list) {
+        if (!byUnit.has(w.unit)) byUnit.set(w.unit, []);
+        byUnit.get(w.unit).push(w);
+      }
+      for (const [unitName, words] of byUnit.entries()) {
+        html += `
+          <section class="unit-section">
+            <div class="unit-section-header">
+              <span>${escHtml(unitName)}</span>
+              <span>剩余 ${words.length} 词</span>
+            </div>
+            <div class="word-grid density-${state.density}">
+              ${words.map((w) => createWordChipHtml(w, { markKnown: state.triageShowKnown })).join('')}
+            </div>
+          </section>
+        `;
+      }
+      main.innerHTML = html;
+    } else {
+      html += `
+        <div class="word-grid density-${state.density}">
+          ${list.map((w) => createWordChipHtml(w, { markKnown: state.triageShowKnown })).join('')}
+        </div>
+      `;
+      main.innerHTML = html;
+    }
+
+    document.getElementById('triage-density').onchange = (e) => {
+      state.density = e.target.value;
+      scheduleSave();
+      renderTriageStage(main);
+    };
+    document.getElementById('btn-triage-group').onclick = () => {
+      state.groupByUnit = !state.groupByUnit;
+      renderTriageStage(main);
+    };
+    document.getElementById('btn-triage-known').onclick = () => {
+      state.triageShowKnown = !state.triageShowKnown;
+      renderTriageStage(main);
+    };
+    document.getElementById('btn-goto-study').onclick = () => switchStage('study');
+
+    setChipHandlers(
+      (wid, chip) => {
+        const rec = getWordRec(wid);
+        if (state.triageShowKnown && rec.status === 'known') {
+          updateWordRec(wid, { status: 'learning', triage_known: false });
+          chip.classList.remove('is-known');
+          showToast('已恢复到待攻克');
+          return;
+        }
+        advanceCursorFromChip(chip);
+        chip.classList.add('vanishing');
+        updateWordRec(wid, { status: 'known', triage_known: true });
+        setTimeout(() => chip.remove(), 145);
+      },
+      (wid, chip) => {
+        const rec = getWordRec(wid);
+        const nextStar = !rec.starred;
+        updateWordRec(wid, { starred: nextStar, status: rec.status === 'known' ? 'learning' : (rec.status || 'learning') });
+        chip.classList.toggle('is-starred', nextStar);
+        showToast(nextStar ? '已加星并保留在待攻克' : '已取消星标');
+      },
+      false
+    );
+  }
+
+  // --- Stage 2: Deep Study ---
+  function renderWordDetailCardHtml(w, isFocus = false) {
+    const rec = getWordRec(w.id);
+    const p = w.phonetics || {};
+    const ipaParts = [];
+    if (p.uk) ipaParts.push(`UK /${escHtml(p.uk)}/`);
+    if (p.us) ipaParts.push(`US /${escHtml(p.us)}/`);
+    const respellHtml = p.respell ? `<span class="respell-tag">${escHtml(p.respell)}</span>` : '';
+    const posHtml = w.pos ? `<span class="pos-tag">${escHtml(w.pos)}</span>` : '';
+
+    const examplesHtml = (w.examples || [])
+      .map(
+        (ex) => `
+        <div class="example-item">
+          <div>
+            ${highlightWordInText(ex.en, w.cleanWord)}
+            <button class="btn btn-sm" style="padding:1px 5px;margin-left:4px;" data-speak="${escHtml(ex.en)}">🔊</button>
+            <span class="example-src">${escHtml(ex.source || '')}</span>
+          </div>
+          ${ex.zh ? `<div class="example-zh">${escHtml(ex.zh)}</div>` : ''}
+        </div>
+      `
+      )
+      .join('');
+
+    const cognatesHtml = (w.cognates || []).length
+      ? `<div class="cognate-row">
+          ${w.cognates.map((cw) => `<span class="cognate-chip" data-jump-word="${escHtml(cw)}">${escHtml(cw)}</span>`).join('')}
+        </div>`
+      : '<span class="hint-text">暂无同根关联词</span>';
+
+    const hiddenCls = isFocus && !state.focusReveal ? 'style="display:none;"' : '';
+    const maskCls = !isFocus && state.studyMask ? ' is-masked' : '';
+
+    return `
+      <div class="study-card" data-card-wid="${escHtml(w.id)}">
+        <div class="study-card-head">
+          <span class="study-word">${escHtml(w.word)}</span>
+          <button class="btn btn-sm" data-speak="${escHtml(w.cleanWord || w.word)}">🔊 发音</button>
+          ${ipaParts.length ? `<span class="ipa-tag">${ipaParts.join(' · ')}</span>` : ''}
+          ${respellHtml}
+          ${posHtml}
+          <div class="spacer"></div>
+          <button class="btn btn-sm ${rec.starred ? 'btn-warn' : ''}" data-toggle-star="${escHtml(w.id)}">${rec.starred ? '★ 已星标' : '☆ 星标'}</button>
+          <button class="btn btn-sm ${rec.status === 'mastered' ? 'btn-primary' : ''}" data-mark-mastered="${escHtml(w.id)}">${rec.status === 'mastered' ? '✓ 已掌握' : '标记掌握'}</button>
+        </div>
+
+        <div class="study-body${maskCls}" ${hiddenCls}>
+          ${w.zhMeaning ? `
+            <div class="study-block maskable">
+              <div class="study-label">中文释义</div>
+              <div class="zh-meaning">${escHtml(w.zhMeaning)}</div>
+            </div>` : ''}
+
+          ${w.enMeaning ? `
+            <div class="study-block maskable">
+              <div class="study-label">英文释义</div>
+              <div class="en-meaning">${highlightWordInText(w.enMeaning, w.cleanWord)}</div>
+            </div>` : ''}
+
+          ${(w.rootBreakdown || w.etymology) ? `
+            <div class="study-block">
+              <div class="study-label">词根词缀拆解 & 词源追溯</div>
+              <div class="study-root-box">
+                ${w.rootBreakdown ? `<div class="study-root-breakdown"><span class="root-badge">拆解</span><span>${escHtml(w.rootBreakdown)}</span></div>` : ''}
+                ${w.etymology ? `<div class="study-root-etym"><span class="etym-badge">词源</span><span>${escHtml(w.etymology)}</span></div>` : ''}
+              </div>
+            </div>` : ''}
+
+          ${w.contextExplanation ? `
+            <div class="study-block">
+              <div class="study-label">原书语境精讲 & 词源故事</div>
+              <div class="context-box">${highlightWordInText(w.contextExplanation, w.cleanWord)}</div>
+            </div>` : ''}
+
+          ${examplesHtml ? `
+            <div class="study-block">
+              <div class="study-label">例句</div>
+              ${examplesHtml}
+            </div>` : ''}
+
+          <div class="study-block">
+            <div class="study-label">词根 / 同根词串联 (${escHtml(w.rootGroup || w.unit)})</div>
+            ${cognatesHtml}
+          </div>
+
+          <div class="study-block">
+            <div class="study-label">个人辅助记忆 / 笔记 (自动保存)</div>
+            <textarea class="mnemonic-box" data-mnemonic-wid="${escHtml(w.id)}" placeholder="写下谐音、拆分联想或例句记忆法...">${escHtml(rec.mnemonic || '')}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStudyStage(main) {
+    const book = getActiveBook();
+    let scoped = getScopedWords();
+    let list = state.studyShowAll ? scoped : scoped.filter(isLearningPool);
+
+    let html = `
+      <div class="toolbar-inline">
+        <button class="btn btn-sm btn-toggle ${state.studyMode === 'focus' ? 'is-on' : ''}" id="btn-study-mode">${state.studyMode === 'list' ? '单卡模式' : '列表模式'}</button>
+        ${state.studyMode === 'list' ? `<button class="btn btn-sm btn-toggle ${state.studyMask ? 'is-on' : ''}" id="btn-study-mask">遮罩自测</button>` : ''}
+        <button class="btn btn-sm btn-toggle ${state.studyShowAll ? 'is-on' : ''}" id="btn-study-all">含已掌握</button>
+        <div class="spacer"></div>
+        <button class="btn btn-primary btn-sm" id="btn-goto-sieve2">去③ 二筛 →</button>
+      </div>
+    `;
+
+    if (list.length === 0) {
+      html += `<div class="empty-state">当前范围没有待攻克的词。可切换单元，或点击“显示本范围全部词”。</div>`;
+      main.innerHTML = html;
+    } else if (state.studyMode === 'focus') {
+      if (state.focusIndex >= list.length) state.focusIndex = 0;
+      const w = list[state.focusIndex];
+      prefetchUpcomingAudio(list, state.focusIndex, 4, state.listen.voice);
+      html += `
+        <div class="focus-nav">
+          <button class="btn btn-sm" id="btn-focus-prev">← 上一个</button>
+          <span class="hint-text">第 <b>${state.focusIndex + 1}</b> / ${list.length} 词 · 快捷键: <code>←/→</code> 切词 · <code>Space</code> 显隐释义 · <code>P</code> 发音</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm" id="btn-focus-reveal">${state.focusReveal ? '隐藏释义自测' : '显示释义'}</button>
+            <button class="btn btn-sm" id="btn-focus-next">下一个 →</button>
+          </div>
+        </div>
+      `;
+      if (w.rootIntro) {
+        html += `<div class="root-banner"><div class="root-banner-title">${escHtml(w.rootGroup)}</div><div class="root-banner-desc">${escHtml(w.rootIntro)}</div></div>`;
+      }
+      html += renderWordDetailCardHtml(w, true);
+      main.innerHTML = html;
+
+      document.getElementById('btn-focus-prev').onclick = () => {
+        state.focusIndex = (state.focusIndex - 1 + list.length) % list.length;
+        renderStudyStage(main);
+      };
+      document.getElementById('btn-focus-next').onclick = () => {
+        state.focusIndex = (state.focusIndex + 1) % list.length;
+        renderStudyStage(main);
+      };
+      document.getElementById('btn-focus-reveal').onclick = () => {
+        state.focusReveal = !state.focusReveal;
+        renderStudyStage(main);
+      };
+    } else {
+      const truncated = state.activeUnit === 'ALL' && list.length > 100;
+      const renderList = truncated ? list.slice(0, 100) : list;
+      if (truncated) {
+        html += `<div class="root-banner" style="margin-top:0;"><div class="root-banner-title">提示：当前选择“全部单元” (共 ${list.length} 词)</div><div class="root-banner-desc">精学阶段建议在顶部下拉框按单个 Unit / Chapter 逐个攻克；当前展示前 100 词。</div></div>`;
+      }
+
+      let lastRootKey = null;
+      for (const w of renderList) {
+        const rk = `${w.unit}::${w.rootGroup}`;
+        if (rk !== lastRootKey) {
+          lastRootKey = rk;
+          if (w.rootIntro || w.rootGroup) {
+            html += `<div class="root-banner"><div class="root-banner-title">${escHtml(w.unit)} · ${escHtml(w.rootGroup || '')}</div>${w.rootIntro ? `<div class="root-banner-desc">${escHtml(w.rootIntro)}</div>` : ''}</div>`;
+          }
+        }
+        html += renderWordDetailCardHtml(w, false);
+      }
+
+      // Bottom unit navigation bar
+      const units = (book && book.units) || [];
+      const curUnitIdx = units.findIndex((u) => u.id === state.activeUnit);
+      html += `
+        <div class="unit-bottom-nav">
+          <button class="btn btn-sm" id="btn-unit-prev" ${curUnitIdx <= 0 ? 'disabled' : ''}>← 上一单元</button>
+          <button class="btn btn-primary btn-sm" id="btn-unit-sieve2-bottom">进入本范围 ③ 二次筛选 →</button>
+          <button class="btn btn-sm" id="btn-unit-next" ${curUnitIdx < 0 || curUnitIdx >= units.length - 1 ? 'disabled' : ''}>下一单元 →</button>
+        </div>
+      `;
+      main.innerHTML = html;
+
+      document.getElementById('btn-unit-sieve2-bottom').onclick = () => switchStage('sieve2');
+      document.getElementById('btn-unit-prev').onclick = () => {
+        if (curUnitIdx > 0) jumpToUnit(units[curUnitIdx - 1].id);
+      };
+      document.getElementById('btn-unit-next').onclick = () => {
+        if (curUnitIdx >= 0 && curUnitIdx < units.length - 1) jumpToUnit(units[curUnitIdx + 1].id);
+      };
+    }
+
+    document.getElementById('btn-study-all').onclick = () => {
+      state.studyShowAll = !state.studyShowAll;
+      state.focusIndex = 0;
+      renderStudyStage(main);
+    };
+    document.getElementById('btn-study-mode').onclick = () => {
+      state.studyMode = state.studyMode === 'list' ? 'focus' : 'list';
+      renderStudyStage(main);
+    };
+    const maskBtn = document.getElementById('btn-study-mask');
+    if (maskBtn) {
+      maskBtn.onclick = () => {
+        state.studyMask = !state.studyMask;
+        renderStudyStage(main);
+      };
+    }
+    document.getElementById('btn-goto-sieve2').onclick = () => switchStage('sieve2');
+  }
+
+  function jumpToUnit(unitId) {
+    state.activeUnit = unitId;
+    state.focusIndex = 0;
+    state.sieve2Order = null;
+    state.reviewOrder = null;
+    state.reviewClearedIds.clear();
+    document.getElementById('unit-select').value = unitId;
+    scheduleSave();
+    renderHeaderStats();
+    renderStage();
+    document.getElementById('main-area').scrollTop = 0;
+  }
+
+  // --- Stage 3: Secondary Sieve ---
+  function renderSieve2Stage(main) {
+    let list = getScopedWords().filter(isLearningPool);
+    if (state.sieve2Order && state.sieve2Order.length) {
+      const byId = new Map(list.map((w) => [w.id, w]));
+      const ordered = state.sieve2Order.map((id) => byId.get(id)).filter(Boolean);
+      const seen = new Set(ordered.map((w) => w.id));
+      list = [...ordered, ...list.filter((w) => !seen.has(w.id))];
+    }
+
+    const isZh2En = state.sieve2Direction === 'zh2en';
+
+    let html = `
+      <div class="toolbar-inline">
+        <div class="dir-switch" id="sieve2-dir-switch" role="group" aria-label="二筛中英回顾方向">
+          <button class="dir-tab ${!isZh2En ? 'active' : ''}" data-dir="en2zh" title="看英文回顾中文 (M)">英→中</button>
+          <button class="dir-tab ${isZh2En ? 'active' : ''}" data-dir="zh2en" title="看中文回顾英文 (M)">中→英</button>
+        </div>
+        <button class="btn btn-sm" id="btn-sieve2-shuffle">乱序洗牌</button>
+        <button class="btn btn-sm btn-toggle ${state.sieve2Peek ? 'is-on' : ''}" id="btn-sieve2-peek">${isZh2En ? '悬停看词' : '悬停释义'}</button>
+        <span class="help-tip" title="${isZh2En ? '看中文回顾英文：左键或 Space 点想得起英文的词消失（标为已掌握）；悬停或按 V 键核对英文与发音；M 键切换中英' : '看英文回顾中文：左键或 Space 点记住了的词消失（标为已掌握）；悬停或按 V 键看释义发音；M 键切换中英'}">?</span>
+        <div class="spacer"></div>
+        <button class="btn btn-primary btn-sm" id="btn-sieve2-back">回② 精学 (${list.length}) →</button>
+      </div>
+    `;
+
+    if (list.length === 0) {
+      html += `<div class="empty-state">本范围词已全部二筛通过！你可以前往“④ 筛选复习”或“⑤ 极速听词”巩固，或切换下一单元。</div>`;
+      main.innerHTML = html;
+    } else {
+      html += `<div class="word-grid density-${state.density}${isZh2En ? ' mode-zh2en' : ''}">${list.map((w) => createWordChipHtml(w, { displayMode: state.sieve2Direction })).join('')}</div>`;
+      main.innerHTML = html;
+    }
+
+    document.querySelectorAll('#sieve2-dir-switch .dir-tab').forEach((btn) => {
+      btn.onclick = () => {
+        const nextDir = btn.dataset.dir;
+        if (nextDir === state.sieve2Direction) return;
+        state.sieve2Direction = nextDir;
+        hidePeekTooltip();
+        scheduleSave();
+        renderSieve2Stage(main);
+      };
+    });
+    document.getElementById('btn-sieve2-shuffle').onclick = () => {
+      state.sieve2Order = shuffleArray(list.map((w) => w.id));
+      renderSieve2Stage(main);
+    };
+    document.getElementById('btn-sieve2-peek').onclick = () => {
+      state.sieve2Peek = !state.sieve2Peek;
+      renderSieve2Stage(main);
+    };
+    document.getElementById('btn-sieve2-back').onclick = () => switchStage('study');
+
+    setChipHandlers(
+      (wid, chip) => {
+        hidePeekTooltip();
+        advanceCursorFromChip(chip);
+        chip.classList.add('vanishing');
+        updateWordRec(wid, { status: 'mastered', stage3_passed: true });
+        setTimeout(() => {
+          chip.remove();
+          const backBtn = document.getElementById('btn-sieve2-back');
+          if (backBtn) backBtn.textContent = `回② 精学 (${getScopedWords().filter(isLearningPool).length}) →`;
+        }, 145);
+      },
+      (wid, chip) => {
+        const rec = getWordRec(wid);
+        const nextStar = !rec.starred;
+        updateWordRec(wid, { starred: nextStar });
+        chip.classList.toggle('is-starred', nextStar);
+      },
+      state.sieve2Peek
+    );
+  }
+
+  // --- Stage 4: Review Sieve ---
+  function getReviewPool() {
+    const scoped = getScopedWords();
+    let pool = [];
+    if (state.reviewSource === 'stage3') {
+      pool = scoped.filter((w) => {
+        const r = getWordRec(w.id);
+        return r.stage3_passed === true && r.status === 'mastered';
+      });
+    } else if (state.reviewSource === 'triage') {
+      pool = scoped.filter((w) => getWordRec(w.id).triage_known === true && isKnown(w));
+    } else if (state.reviewSource === 'hard') {
+      pool = scoped.filter((w) => {
+        const r = getWordRec(w.id);
+        return r.starred || (r.audio_miss_count || 0) > 0 || (r.review_fail_count || 0) > 0;
+      });
+    } else if (state.reviewSource === 'all_mastered') {
+      pool = scoped.filter((w) => isKnown(w) || isMastered(w));
+    } else if (state.reviewSource === 'random80') {
+      pool = shuffleArray(scoped).slice(0, 80);
+    }
+
+    if (state.reviewOrder && state.reviewOrder.length) {
+      const byId = new Map(pool.map((w) => [w.id, w]));
+      const ordered = state.reviewOrder.map((id) => byId.get(id)).filter(Boolean);
+      const seen = new Set(ordered.map((w) => w.id));
+      pool = [...ordered, ...pool.filter((w) => !seen.has(w.id))];
+    }
+    return pool.filter((w) => !state.reviewClearedIds.has(w.id));
+  }
+
+  function renderReviewStage(main) {
+    const list = getReviewPool();
+
+    let html = `
+      <div class="toolbar-inline">
+        <select id="review-source">
+          <option value="stage3" ${state.reviewSource === 'stage3' ? 'selected' : ''}>二筛才过的词 (重点复习)</option>
+          <option value="triage" ${state.reviewSource === 'triage' ? 'selected' : ''}>初筛秒过词 (抽查防假熟)</option>
+          <option value="hard" ${state.reviewSource === 'hard' ? 'selected' : ''}>星标 / 听词未过 / 曾忘词</option>
+          <option value="all_mastered" ${state.reviewSource === 'all_mastered' ? 'selected' : ''}>本范围全部已掌握词</option>
+          <option value="random80" ${state.reviewSource === 'random80' ? 'selected' : ''}>随机抽查 80 词</option>
+        </select>
+        <button class="btn btn-sm" id="btn-review-shuffle">洗牌</button>
+        <button class="btn btn-sm btn-toggle ${state.reviewDemoteClick ? 'is-on' : ''}" id="btn-review-mode" title="开启后左键点击直接打回待攻克">
+          ${state.reviewDemoteClick ? '点击: 打回' : '点击: 记得'}
+        </button>
+        <button class="btn btn-sm" id="btn-review-reset">重置</button>
+        <span class="help-tip" title="右键或 S 键随时将生疏词打回待攻克；悬停可偷看释义">?</span>
+      </div>
+    `;
+
+    if (list.length === 0) {
+      html += `<div class="empty-state">当前复习池为空（或本轮已全部筛完）。可切换复习来源或点击“重置本轮隐藏”。</div>`;
+      main.innerHTML = html;
+    } else {
+      html += `<div class="word-grid density-${state.density}">${list.map((w) => createWordChipHtml(w, { highlightHard: true })).join('')}</div>`;
+      main.innerHTML = html;
+    }
+
+    document.getElementById('review-source').onchange = (e) => {
+      state.reviewSource = e.target.value;
+      state.reviewOrder = null;
+      state.reviewClearedIds.clear();
+      renderReviewStage(main);
+    };
+    document.getElementById('btn-review-shuffle').onclick = () => {
+      state.reviewOrder = shuffleArray(list.map((w) => w.id));
+      renderReviewStage(main);
+    };
+    document.getElementById('btn-review-mode').onclick = () => {
+      state.reviewDemoteClick = !state.reviewDemoteClick;
+      renderReviewStage(main);
+    };
+    document.getElementById('btn-review-reset').onclick = () => {
+      state.reviewClearedIds.clear();
+      renderReviewStage(main);
+    };
+
+    const demoteWord = (wid, chip) => {
+      hidePeekTooltip();
+      advanceCursorFromChip(chip);
+      const rec = getWordRec(wid);
+      updateWordRec(wid, {
+        status: 'learning',
+        stage3_passed: false,
+        triage_known: false,
+        review_fail_count: (rec.review_fail_count || 0) + 1
+      });
+      chip.classList.add('is-demoted');
+      setTimeout(() => {
+        state.reviewClearedIds.add(wid);
+        chip.classList.add('vanishing');
+        setTimeout(() => chip.remove(), 145);
+      }, 240);
+      showToast('已打回“待攻克”池');
+    };
+
+    const passWord = (wid, chip) => {
+      hidePeekTooltip();
+      advanceCursorFromChip(chip);
+      const rec = getWordRec(wid);
+      updateWordRec(wid, { review_pass_count: (rec.review_pass_count || 0) + 1 });
+      state.reviewClearedIds.add(wid);
+      chip.classList.add('vanishing');
+      setTimeout(() => chip.remove(), 145);
+    };
+
+    setChipHandlers(
+      (wid, chip) => (state.reviewDemoteClick ? demoteWord(wid, chip) : passWord(wid, chip)),
+      (wid, chip) => demoteWord(wid, chip),
+      true
+    );
+  }
+
+  // --- Stage 5: Rapid Audio Listening Mode ---
+  function stopListenSession() {
+    clearTimeout(state.listen.timerHandle);
+    clearInterval(state.listen.tickHandle);
+    stopAudio();
+    state.listen.running = false;
+    state.listen.paused = false;
+    state.listen.awaitingAction = false;
+    state.listen.flashingMiss = false;
+  }
+
+  function buildListenQueue() {
+    const scoped = getScopedWords();
+    const sc = state.listen.scope;
+    let pool = [];
+    if (sc === 'learning') pool = scoped.filter(isLearningPool);
+    else if (sc === 'unit_all') pool = [...scoped];
+    else if (sc === 'stage3') pool = scoped.filter((w) => getWordRec(w.id).stage3_passed === true);
+    else if (sc === 'hard') pool = scoped.filter((w) => {
+      const r = getWordRec(w.id);
+      return r.starred || (r.audio_miss_count || 0) > 0;
+    });
+    else if (sc === 'random50') pool = shuffleArray(scoped).slice(0, 50);
+    return shuffleArray(pool);
+  }
+
+  async function runCurrentListenWord() {
+    const L = state.listen;
+    clearTimeout(L.timerHandle);
+    clearInterval(L.tickHandle);
+    L.awaitingAction = false;
+    L.flashingMiss = false;
+
+    if (!L.running || L.paused) return;
+    if (L.index >= L.queue.length) {
+      L.running = false;
+      renderListenStage(document.getElementById('main-area'));
+      showToast(`本轮听词结束！听出 ${L.passed.length} / 未听出 ${L.missed.length}`);
+      return;
+    }
+
+    const w = L.queue[L.index];
+    prefetchUpcomingAudio(L.queue, L.index + 1, 3, L.voice);
+    updateListenLiveView(w, 1.0, '正在播放发音...');
+    await playTextAudio(w.cleanWord || w.word, L.voice, L.repeat);
+
+    if (!L.running || L.paused) return;
+    // Start reaction countdown window
+    L.awaitingAction = true;
+    L.countdownStart = performance.now();
+    const durationMs = L.intervalSec * 1000;
+
+    L.tickHandle = setInterval(() => {
+      if (!L.running || L.paused || !L.awaitingAction) return;
+      const elapsed = performance.now() - L.countdownStart;
+      const ratio = Math.max(0, 1 - elapsed / durationMs);
+      const fill = document.getElementById('listen-progress-fill');
+      const statusTxt = document.getElementById('listen-status-txt');
+      if (fill) {
+        fill.style.width = `${(ratio * 100).toFixed(1)}%`;
+        fill.classList.toggle('urgent', ratio < 0.35);
+      }
+      if (statusTxt) {
+        statusTxt.textContent = `反应窗口 ${(Math.max(0, durationMs - elapsed) / 1000).toFixed(1)}s · 听出请按空格 [Space]`;
+      }
+    }, 60);
+
+    L.timerHandle = setTimeout(() => {
+      handleListenMiss();
+    }, durationMs);
+  }
+
+  function handleListenPass() {
+    const L = state.listen;
+    if (!L.running || L.paused || L.flashingMiss || L.index >= L.queue.length) return;
+    clearTimeout(L.timerHandle);
+    clearInterval(L.tickHandle);
+    stopAudio();
+    L.awaitingAction = false;
+
+    const w = L.queue[L.index];
+    playFeedbackTone('pass');
+    const rec = getWordRec(w.id);
+    updateWordRec(w.id, { audio_pass_count: (rec.audio_pass_count || 0) + 1 }, false);
+    if (!L.passed.some((x) => x.id === w.id)) L.passed.unshift(w);
+
+    const wordEl = document.getElementById('listen-word-el');
+    const subEl = document.getElementById('listen-sub-el');
+    if (wordEl) {
+      wordEl.style.color = 'var(--accent)';
+      wordEl.textContent = `✓ ${w.word}`;
+    }
+    if (subEl) subEl.textContent = (w.zhMeaning || w.enMeaning || '').split('\n')[0];
+
+    L.index++;
+    renderListenTrays();
+    L.timerHandle = setTimeout(() => runCurrentListenWord(), 350);
+  }
+
+  function handleListenMiss() {
+    const L = state.listen;
+    if (!L.running || L.paused || L.flashingMiss || L.index >= L.queue.length) return;
+    clearTimeout(L.timerHandle);
+    clearInterval(L.tickHandle);
+    stopAudio();
+    L.awaitingAction = false;
+    L.flashingMiss = true;
+
+    const w = L.queue[L.index];
+    playFeedbackTone('miss');
+    if (L.replayOnMiss) playTextAudio(w.cleanWord || w.word, L.voice, 1);
+    const rec = getWordRec(w.id);
+    updateWordRec(w.id, { audio_miss_count: (rec.audio_miss_count || 0) + 1 }, false);
+    if (!L.missed.some((x) => x.id === w.id)) L.missed.unshift(w);
+
+    const wordEl = document.getElementById('listen-word-el');
+    const subEl = document.getElementById('listen-sub-el');
+    if (wordEl) {
+      wordEl.style.color = 'var(--danger)';
+      wordEl.textContent = `✕ ${w.word}`;
+    }
+    if (subEl) subEl.textContent = (w.zhMeaning || w.enMeaning || '暂无释义').split('\n')[0];
+
+    L.index++;
+    renderListenTrays();
+    const waitMs = Math.max(L.flashOnMiss ? 1200 : 120, L.replayOnMiss ? 1350 : 0);
+    L.timerHandle = setTimeout(() => runCurrentListenWord(), waitMs);
+  }
+
+  function updateListenLiveView(w, ratio, statusMsg) {
+    const wordEl = document.getElementById('listen-word-el');
+    const subEl = document.getElementById('listen-sub-el');
+    const fill = document.getElementById('listen-progress-fill');
+    const statusTxt = document.getElementById('listen-status-txt');
+    const idxEl = document.getElementById('listen-idx-txt');
+
+    if (wordEl) {
+      wordEl.style.color = 'var(--text)';
+      wordEl.textContent = state.listen.blind ? '🔊 盲听中...' : w.word;
+    }
+    if (subEl) {
+      subEl.textContent = state.listen.blind ? '听出词义后立刻按下空格 [Space]' : ((w.phonetics && w.phonetics.us) ? `/${w.phonetics.us}/` : '');
+    }
+    if (fill) {
+      fill.style.width = `${ratio * 100}%`;
+      fill.classList.remove('urgent');
+    }
+    if (statusTxt) statusTxt.textContent = statusMsg;
+    if (idxEl) idxEl.textContent = `进度 ${state.listen.index + 1} / ${state.listen.queue.length}`;
+  }
+
+  function renderListenTrays() {
+    const missedWrap = document.getElementById('listen-missed-list');
+    const passedWrap = document.getElementById('listen-passed-list');
+    if (missedWrap) {
+      const m = state.listen.missed;
+      document.getElementById('missed-count').textContent = m.length;
+      const btnCountEl = document.getElementById('missed-btn-count');
+      if (btnCountEl) btnCountEl.textContent = m.length;
+      missedWrap.innerHTML = m.length
+        ? m.map((w) => `
+            <div class="missed-row">
+              <div style="min-width:0;flex:1;">
+                <b style="cursor:pointer;" data-open-detail="${escHtml(w.id)}">${escHtml(w.word)}</b>
+                <span class="hint-text" style="margin-left:6px;">${escHtml((w.zhMeaning || w.enMeaning || '').split('\n')[0])}</span>
+              </div>
+              <button class="btn btn-sm" data-replay="${escHtml(w.cleanWord || w.word)}">🔊</button>
+            </div>
+          `).join('')
+        : '<div class="hint-text">暂无未听出的词</div>';
+    }
+    if (passedWrap) {
+      const p = state.listen.passed;
+      document.getElementById('passed-count').textContent = p.length;
+      passedWrap.innerHTML = p.length
+        ? `<div style="display:flex;flex-wrap:wrap;gap:4px;">${p.map((w) => `<span class="cognate-chip" data-open-detail="${escHtml(w.id)}">${escHtml(w.word)}</span>`).join('')}</div>`
+        : '<div class="hint-text">按下空格听出的词会记录在这里</div>';
+    }
+  }
+
+  function renderListenStage(main, keepPopOpen = false) {
+    const L = state.listen;
+    const voiceLabel = L.voice === 'Daniel' ? '真人英音' : L.voice === 'WEB' ? '浏览器音' : '真人美音';
+    const html = `
+      <div class="toolbar-inline">
+        <select id="listen-scope" title="听词范围">
+          <option value="learning" ${L.scope === 'learning' ? 'selected' : ''}>本范围待攻克词</option>
+          <option value="unit_all" ${L.scope === 'unit_all' ? 'selected' : ''}>本范围全部词</option>
+          <option value="stage3" ${L.scope === 'stage3' ? 'selected' : ''}>二筛重点复习池</option>
+          <option value="hard" ${L.scope === 'hard' ? 'selected' : ''}>星标与历史未听出</option>
+          <option value="random50" ${L.scope === 'random50' ? 'selected' : ''}>随机抽听 50 词</option>
+        </select>
+        <select id="listen-interval" title="听词反应间隔">
+          ${[1.0, 1.5, 2.0, 3.0, 5.0].map((v) => `<option value="${v}" ${L.intervalSec === v ? 'selected' : ''}>间隔 ${v}s</option>`).join('')}
+        </select>
+        <span class="hint-text">${voiceLabel} · ${L.repeat}遍${L.blind ? ' · 盲听' : ''}</span>
+        <div class="spacer"></div>
+        <details class="stage-pop-menu" id="listen-pop-menu" ${keepPopOpen ? 'open' : ''}>
+          <summary class="btn btn-sm">⚙ 听词设置</summary>
+          <div class="stage-popover">
+            <div class="pop-row">
+              <span>连读次数</span>
+              <select id="listen-repeat">
+                <option value="1" ${L.repeat === 1 ? 'selected' : ''}>1 遍</option>
+                <option value="2" ${L.repeat === 2 ? 'selected' : ''}>2 遍</option>
+              </select>
+            </div>
+            <div class="pop-row">
+              <span>发音音色</span>
+              <select id="listen-voice">
+                <option value="Samantha" ${L.voice === 'Samantha' ? 'selected' : ''}>词典真人美音 (Oxford/有道)</option>
+                <option value="Daniel" ${L.voice === 'Daniel' ? 'selected' : ''}>词典真人英音 (Oxford/有道)</option>
+                <option value="WEB" ${L.voice === 'WEB' ? 'selected' : ''}>浏览器语音 (备用)</option>
+              </select>
+            </div>
+            <div class="pop-toggles">
+              <button class="btn btn-sm btn-toggle ${L.blind ? 'is-on' : ''}" id="btn-listen-blind">盲听模式</button>
+              <button class="btn btn-sm btn-toggle ${L.flashOnMiss ? 'is-on' : ''}" id="btn-listen-flash">超时闪现释义</button>
+              <button class="btn btn-sm btn-toggle ${L.replayOnMiss ? 'is-on' : ''}" id="btn-listen-replay-miss">超时重读</button>
+              <button class="btn btn-sm btn-toggle ${L.soundFx ? 'is-on' : ''}" id="btn-listen-sfx">反馈音效</button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="listen-panel">
+        <div class="hint-text" id="listen-idx-txt">${L.running ? `进度 ${Math.min(L.index + 1, L.queue.length)} / ${L.queue.length}` : '准备就绪 · 点击“开始听词”进入极速听辨'}</div>
+        <div class="listen-word-display" id="listen-word-el">${L.running ? (L.blind ? '🔊 盲听中...' : (L.queue[L.index]?.word || '')) : '🎧 听词模式'}</div>
+        <div class="listen-sub-display" id="listen-sub-el">听到单词反应出意思立刻按 <b>Space (空格)</b>；超时自动记为未听出</div>
+        <div class="progress-track"><div class="progress-fill" id="listen-progress-fill" style="width:${L.running ? 100 : 0}%"></div></div>
+        <div class="hint-text" id="listen-status-txt" style="margin-bottom:12px;">快捷键: <code>Space</code> 听出来了 · <code>R</code> 重播当前词 · <code>P</code> 暂停/继续</div>
+        <div class="listen-actions">
+          ${!L.running
+            ? '<button class="btn btn-primary" id="btn-listen-start">▶ 开始听词</button>'
+            : `
+              <button class="btn btn-primary" id="btn-listen-pass">✓ 听出来了 (Space)</button>
+              <button class="btn btn-warn" id="btn-listen-miss">✕ 没听出来</button>
+              <button class="btn" id="btn-listen-replay">🔊 重播 (R)</button>
+              <button class="btn" id="btn-listen-pause">${L.paused ? '▶ 继续 (P)' : '⏸ 暂停 (P)'}</button>
+              <button class="btn" id="btn-listen-stop">■ 结束</button>
+            `}
+        </div>
+      </div>
+
+      <div class="tray-grid">
+        <div class="tray-box">
+          <div class="tray-title">
+            <span>未听出词单 (<span id="missed-count">0</span>)</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn btn-sm btn-primary" id="btn-listen-only-missed">🔄 只听这 <span id="missed-btn-count">${L.missed.length}</span> 词</button>
+              <button class="btn btn-sm btn-warn" id="btn-demote-missed">全部打回待攻克</button>
+            </div>
+          </div>
+          <div id="listen-missed-list"></div>
+        </div>
+        <div class="tray-box">
+          <div class="tray-title">
+            <span>已听出词单 (<span id="passed-count">0</span>)</span>
+          </div>
+          <div id="listen-passed-list"></div>
+        </div>
+      </div>
+    `;
+    main.innerHTML = html;
+    renderListenTrays();
+
+    document.getElementById('listen-scope').onchange = (e) => { L.scope = e.target.value; };
+    document.getElementById('listen-interval').onchange = (e) => { L.intervalSec = Number(e.target.value); scheduleSave(); };
+    document.getElementById('listen-repeat').onchange = (e) => { L.repeat = Number(e.target.value); scheduleSave(); renderListenStage(main, true); };
+    document.getElementById('listen-voice').onchange = (e) => { L.voice = e.target.value; scheduleSave(); renderListenStage(main, true); };
+    document.getElementById('btn-listen-blind').onclick = () => { L.blind = !L.blind; scheduleSave(); renderListenStage(main, true); };
+    document.getElementById('btn-listen-flash').onclick = () => { L.flashOnMiss = !L.flashOnMiss; scheduleSave(); renderListenStage(main, true); };
+    document.getElementById('btn-listen-replay-miss').onclick = () => { L.replayOnMiss = !L.replayOnMiss; scheduleSave(); renderListenStage(main, true); };
+    document.getElementById('btn-listen-sfx').onclick = () => { L.soundFx = !L.soundFx; scheduleSave(); renderListenStage(main, true); };
+
+    document.getElementById('btn-listen-only-missed').onclick = () => {
+      if (!L.missed.length) return;
+      clearTimeout(L.timerHandle);
+      clearInterval(L.tickHandle);
+      stopAudio();
+      L.queue = [...L.missed].reverse();
+      L.index = 0;
+      L.passed = [];
+      L.missed = [];
+      L.running = true;
+      L.paused = false;
+      renderListenStage(main);
+      runCurrentListenWord();
+    };
+
+    document.getElementById('btn-demote-missed').onclick = () => {
+      if (!L.missed.length) return;
+      for (const w of L.missed) {
+        updateWordRec(w.id, { status: 'learning', stage3_passed: false, triage_known: false }, false);
+      }
+      showToast(`已将 ${L.missed.length} 个未听出词打回“待攻克”`);
+      renderHeaderStats();
+    };
+
+    const startBtn = document.getElementById('btn-listen-start');
+    if (startBtn) {
+      startBtn.onclick = () => {
+        const q = buildListenQueue();
+        if (!q.length) { showToast('当前范围没有可听的单词'); return; }
+        L.queue = q;
+        L.index = 0;
+        L.passed = [];
+        L.missed = [];
+        L.running = true;
+        L.paused = false;
+        renderListenStage(main);
+        runCurrentListenWord();
+      };
+    }
+
+    const passBtn = document.getElementById('btn-listen-pass');
+    if (passBtn) passBtn.onclick = handleListenPass;
+    const missBtn = document.getElementById('btn-listen-miss');
+    if (missBtn) missBtn.onclick = handleListenMiss;
+    const replayBtn = document.getElementById('btn-listen-replay');
+    if (replayBtn) replayBtn.onclick = () => {
+      const w = L.queue[L.index];
+      if (w) playTextAudio(w.cleanWord || w.word, L.voice, 1);
+    };
+    const pauseBtn = document.getElementById('btn-listen-pause');
+    if (pauseBtn) pauseBtn.onclick = () => {
+      L.paused = !L.paused;
+      if (L.paused) {
+        clearTimeout(L.timerHandle);
+        clearInterval(L.tickHandle);
+        stopAudio();
+      } else {
+        runCurrentListenWord();
+      }
+      renderListenStage(main);
+    };
+    const stopBtn = document.getElementById('btn-listen-stop');
+    if (stopBtn) stopBtn.onclick = () => { stopListenSession(); renderListenStage(main); };
+  }
+
+  // 9. Tooltip, Cursor, Delegation & Modal Helpers
+  function findWordById(wid) {
+    const book = getActiveBook();
+    if (!book) return null;
+    if (book.wordMap) return book.wordMap.get(wid) || null;
+    return (book.words || []).find((w) => w.id === wid) || null;
+  }
+
+  let peekRafId = 0;
+  let peekPendingPos = { x: 0, y: 0 };
+
+  function showPeekTooltip(wid, ev) {
+    const w = findWordById(wid);
+    if (!w) return;
+    const tip = document.getElementById('peek-tooltip');
+    tip.classList.toggle('is-zh2en-answer', state.activeStage === 'sieve2' && state.sieve2Direction === 'zh2en');
+    document.getElementById('peek-word').textContent = w.word;
+    const p = w.phonetics || {};
+    document.getElementById('peek-ipa').textContent = [p.uk ? `UK /${p.uk}/` : '', p.us ? `US /${p.us}/` : '', p.respell || ''].filter(Boolean).join(' · ');
+    document.getElementById('peek-zh').textContent = w.zhMeaning || w.enMeaning || '暂无释义';
+    const rootEl = document.getElementById('peek-root');
+    if (rootEl) {
+      if (w.rootBreakdown) {
+        rootEl.textContent = '🧩 ' + w.rootBreakdown;
+        rootEl.style.display = 'block';
+      } else {
+        rootEl.style.display = 'none';
+      }
+    }
+    tip.classList.add('show');
+    movePeekTooltip(ev);
+  }
+
+  function movePeekTooltip(ev) {
+    const tip = document.getElementById('peek-tooltip');
+    if (!tip.classList.contains('show')) return;
+    peekPendingPos.x = Math.max(8, Math.min(window.innerWidth - 315, ev.clientX + 14));
+    peekPendingPos.y = Math.max(8, Math.min(window.innerHeight - 160, ev.clientY + 14));
+    if (!peekRafId) {
+      peekRafId = requestAnimationFrame(() => {
+        peekRafId = 0;
+        tip.style.left = peekPendingPos.x + 'px';
+        tip.style.top = peekPendingPos.y + 'px';
+      });
+    }
+  }
+
+  function hidePeekTooltip() {
+    document.getElementById('peek-tooltip').classList.remove('show');
+  }
+
+  function getVisibleChips() {
+    return Array.from(document.querySelectorAll('#main-area .word-chip:not(.vanishing)'));
+  }
+
+  function applyCursorToChip(next) {
+    document.querySelectorAll('#main-area .word-chip.is-cursor').forEach((el) => el.classList.remove('is-cursor'));
+    if (next) {
+      next.classList.add('is-cursor');
+      state.cursorWid = next.dataset.wid;
+      next.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    } else {
+      state.cursorWid = null;
+    }
+    return next;
+  }
+
+  function advanceCursorFromChip(chip) {
+    if (!chip) return null;
+    const chips = getVisibleChips();
+    const idx = chips.indexOf(chip);
+    const next = idx >= 0 ? (chips[idx + 1] || chips[idx - 1] || null) : (chips[0] || null);
+    return applyCursorToChip(next);
+  }
+
+  function moveSieveCursor(dir) {
+    const chips = getVisibleChips();
+    if (!chips.length) return null;
+    const curIdx = state.cursorWid ? chips.findIndex((c) => c.dataset.wid === state.cursorWid) : -1;
+    if (curIdx < 0) return applyCursorToChip(chips[0]);
+
+    let next = null;
+    if (dir === 'left') {
+      next = chips[Math.max(0, curIdx - 1)];
+    } else if (dir === 'right') {
+      next = chips[Math.min(chips.length - 1, curIdx + 1)];
+    } else {
+      const curRect = chips[curIdx].getBoundingClientRect();
+      const curCx = curRect.left + curRect.width / 2;
+      const curCy = curRect.top + curRect.height / 2;
+      const cands = [];
+      for (const c of chips) {
+        if (c === chips[curIdx]) continue;
+        const r = c.getBoundingClientRect();
+        const dy = dir === 'down' ? (r.top + r.height / 2 - curCy) : (curCy - (r.top + r.height / 2));
+        if (dy > 8) {
+          cands.push({ chip: c, dy, dx: Math.abs(r.left + r.width / 2 - curCx) });
+        }
+      }
+      if (cands.length) {
+        cands.sort((a, b) => a.dy - b.dy);
+        const minDy = cands[0].dy;
+        const sameRow = cands.filter((c) => c.dy <= minDy + 18);
+        sameRow.sort((a, b) => a.dx - b.dx);
+        next = sameRow[0].chip;
+      } else {
+        next = dir === 'down' ? chips[Math.min(chips.length - 1, curIdx + 1)] : chips[Math.max(0, curIdx - 1)];
+      }
+    }
+    return applyCursorToChip(next);
+  }
+
+  function attachCardAndSieveDelegation(rootEl) {
+    if (!rootEl) return;
+
+    rootEl.addEventListener('click', (e) => {
+      const speakBtn = e.target.closest('[data-speak]');
+      if (speakBtn) {
+        e.stopPropagation();
+        playTextAudio(speakBtn.dataset.speak, state.listen.voice, 1);
+        return;
+      }
+
+      const starBtn = e.target.closest('[data-toggle-star]');
+      if (starBtn) {
+        e.stopPropagation();
+        const wid = starBtn.dataset.toggleStar;
+        const rec = getWordRec(wid);
+        const next = !rec.starred;
+        updateWordRec(wid, { starred: next });
+        starBtn.classList.toggle('btn-warn', next);
+        starBtn.textContent = next ? '★ 已星标' : '☆ 星标';
+        return;
+      }
+
+      const masterBtn = e.target.closest('[data-mark-mastered]');
+      if (masterBtn) {
+        e.stopPropagation();
+        const wid = masterBtn.dataset.markMastered;
+        const rec = getWordRec(wid);
+        const nextStatus = rec.status === 'mastered' ? 'learning' : 'mastered';
+        updateWordRec(wid, { status: nextStatus });
+        masterBtn.classList.toggle('btn-primary', nextStatus === 'mastered');
+        masterBtn.textContent = nextStatus === 'mastered' ? '✓ 已掌握' : '标记掌握';
+        return;
+      }
+
+      const jumpBtn = e.target.closest('[data-jump-word]');
+      if (jumpBtn) {
+        e.stopPropagation();
+        const targetWord = jumpBtn.dataset.jumpWord.trim().toLowerCase();
+        const book = getActiveBook();
+        const match = book && book.wordLowerMap ? book.wordLowerMap.get(targetWord) : null;
+        if (match) {
+          openDetailModal(match.id);
+        } else {
+          showToast(`当前词书未收录: ${jumpBtn.dataset.jumpWord}`);
+        }
+        return;
+      }
+
+      const replayBtn = e.target.closest('[data-replay]');
+      if (replayBtn) {
+        e.stopPropagation();
+        playTextAudio(replayBtn.dataset.replay, state.listen.voice, 1);
+        return;
+      }
+
+      const detailBtn = e.target.closest('[data-open-detail]');
+      if (detailBtn) {
+        e.stopPropagation();
+        openDetailModal(detailBtn.dataset.openDetail);
+        return;
+      }
+
+      const maskedBody = e.target.closest('.study-body.is-masked');
+      if (maskedBody && !e.target.closest('textarea, button, .cognate-chip')) {
+        maskedBody.classList.remove('is-masked');
+        return;
+      }
+
+      const chip = e.target.closest('.word-chip');
+      if (chip) {
+        e.preventDefault();
+        const wid = chip.dataset.wid;
+        if (e.altKey) {
+          if (currentChipHandlers.right) currentChipHandlers.right(wid, chip);
+        } else {
+          if (currentChipHandlers.left) currentChipHandlers.left(wid, chip);
+        }
+      }
+    });
+
+    rootEl.addEventListener('contextmenu', (e) => {
+      const chip = e.target.closest('.word-chip');
+      if (!chip) return;
+      e.preventDefault();
+      if (currentChipHandlers.right) currentChipHandlers.right(chip.dataset.wid, chip);
+    });
+
+    rootEl.addEventListener('dblclick', (e) => {
+      const chip = e.target.closest('.word-chip');
+      if (!chip) return;
+      e.preventDefault();
+      openDetailModal(chip.dataset.wid);
+    });
+
+    rootEl.addEventListener('mouseover', (e) => {
+      const chip = e.target.closest('.word-chip');
+      if (!chip || !currentChipHandlers.peek) return;
+      if (e.relatedTarget && chip.contains(e.relatedTarget)) return;
+      showPeekTooltip(chip.dataset.wid, e);
+    });
+
+    rootEl.addEventListener('mouseout', (e) => {
+      const chip = e.target.closest('.word-chip');
+      if (!chip || !currentChipHandlers.peek) return;
+      if (e.relatedTarget && chip.contains(e.relatedTarget)) return;
+      hidePeekTooltip();
+    });
+
+    rootEl.addEventListener('mousemove', (e) => {
+      const chip = e.target.closest('.word-chip');
+      if (!chip || !currentChipHandlers.peek) return;
+      movePeekTooltip(e);
+    });
+
+    rootEl.addEventListener('input', (e) => {
+      const ta = e.target.closest('[data-mnemonic-wid]');
+      if (!ta) return;
+      updateWordRec(ta.dataset.mnemonicWid, { mnemonic: ta.value }, false);
+    });
+  }
+
+  function openDetailModal(wid) {
+    const w = findWordById(wid);
+    if (!w) return;
+    const modal = document.getElementById('detail-modal');
+    const body = document.getElementById('detail-modal-body');
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span class="hint-text">${escHtml(w.unit)} · ${escHtml(w.rootGroup || '')}</span>
+        <button class="btn btn-sm" id="btn-close-modal">关闭 (Esc)</button>
+      </div>
+      ${renderWordDetailCardHtml(w, false)}
+    `;
+    modal.classList.add('show');
+    document.getElementById('btn-close-modal').onclick = () => modal.classList.remove('show');
+  }
+
+  function switchStage(stage) {
+    if (state.activeStage === 'listen' && stage !== 'listen') {
+      stopListenSession();
+    }
+    state.activeStage = stage;
+    scheduleSave();
+    renderStageNav();
+    renderStage();
+  }
+
+  function renderAll() {
+    renderBookTabs();
+    renderUnitSelector();
+    renderHeaderStats();
+    renderStageNav();
+    renderStage();
+  }
+
+  // 10. Global Events & Shortcuts
+  attachCardAndSieveDelegation(document.getElementById('main-area'));
+  attachCardAndSieveDelegation(document.getElementById('detail-modal-body'));
+
+  document.getElementById('stage-nav').querySelectorAll('.stage-btn').forEach((btn) => {
+    btn.onclick = () => switchStage(btn.dataset.stage);
+  });
+
+  document.getElementById('unit-select').onchange = (e) => {
+    state.activeUnit = e.target.value;
+    state.focusIndex = 0;
+    state.sieve2Order = null;
+    state.reviewOrder = null;
+    state.reviewClearedIds.clear();
+    scheduleSave();
+    renderHeaderStats();
+    renderStage();
+  };
+
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    state.searchQuery = e.target.value;
+    state.focusIndex = 0;
+    renderHeaderStats();
+    renderStage();
+  });
+
+  document.getElementById('btn-undo').onclick = performUndo;
+
+  document.getElementById('btn-export-md').onclick = async () => {
+    const book = getActiveBook();
+    const scoped = getScopedWords();
+    const exportList = scoped.filter((w) => isLearningPool(w) || getWordRec(w.id).starred);
+    if (!exportList.length) {
+      showToast('当前范围没有待攻克或已星标的单词');
+      return;
+    }
+    const unitLabel = state.activeUnit === 'ALL' ? '全部单元' : state.activeUnit;
+    const lines = [
+      `# ${(book && book.title) || state.activeBookId} — ${unitLabel} 生词导出 (${exportList.length} 词)`,
+      ''
+    ];
+    for (const w of exportList) {
+      const rec = getWordRec(w.id);
+      const p = w.phonetics || {};
+      const ipa = [p.uk ? `UK /${p.uk}/` : '', p.us ? `US /${p.us}/` : ''].filter(Boolean).join(' ');
+      const tags = [rec.starred ? '★星标' : '', w.pos || '', w.rootGroup || ''].filter(Boolean).join(' · ');
+      lines.push(`### ${w.word}${ipa ? ` \`${ipa}\`` : ''}${tags ? ` (${tags})` : ''}`);
+      if (w.zhMeaning) lines.push(`- **中文**：${w.zhMeaning.replace(/\n+/g, '；')}`);
+      if (w.enMeaning) lines.push(`- **英文**：${w.enMeaning.replace(/\n+/g, ' ')}`);
+      if (w.rootBreakdown) lines.push(`- **词根拆解**：${w.rootBreakdown}`);
+      if (w.etymology) lines.push(`- **简明词源**：${w.etymology}`);
+      if (w.contextExplanation) lines.push(`- **精讲/词源**：${w.contextExplanation.replace(/\n+/g, ' ')}`);
+      if (rec.mnemonic) lines.push(`- **助记**：${rec.mnemonic.replace(/\n+/g, ' ')}`);
+      lines.push('');
+    }
+    const md = lines.join('\n');
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(md);
+      } else {
+        throw new Error('no clipboard api');
+      }
+    } catch (_) {
+      const ta = document.createElement('textarea');
+      ta.value = md;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    showToast(`已复制 ${exportList.length} 个词的 Markdown 笔记到剪贴板`);
+    document.getElementById('top-more-menu')?.removeAttribute('open');
+  };
+
+  document.getElementById('btn-theme').onclick = () => {
+    const nextDark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', nextDark);
+    localStorage.setItem('vocab_sieve_theme', nextDark ? 'dark' : 'light');
+    document.getElementById('top-more-menu')?.removeAttribute('open');
+  };
+
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('details.top-more-menu[open], details.stage-pop-menu[open]').forEach((d) => {
+      if (!d.contains(e.target)) d.removeAttribute('open');
+    });
+  });
+
+  document.getElementById('detail-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'detail-modal') {
+      e.target.classList.remove('show');
+    }
+  });
+
+  window.addEventListener('keydown', (e) => {
+    const tag = (e.target && e.target.tagName) || '';
+    const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !isTyping) {
+      e.preventDefault();
+      performUndo();
+      return;
+    }
+    if (e.key === 'Escape') {
+      document.getElementById('detail-modal').classList.remove('show');
+      hidePeekTooltip();
+      document.querySelectorAll('details.top-more-menu[open], details.stage-pop-menu[open]').forEach((d) => d.removeAttribute('open'));
+      return;
+    }
+    if (isTyping) return;
+
+    // Listening mode shortcuts
+    if (state.activeStage === 'listen' && state.listen.running) {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleListenPass();
+      } else if (e.key === 'Enter' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleListenMiss();
+      } else if (e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        const w = state.listen.queue[state.listen.index];
+        if (w) playTextAudio(w.cleanWord || w.word, state.listen.voice, 1);
+      } else if (e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        const pauseBtn = document.getElementById('btn-listen-pause');
+        if (pauseBtn) pauseBtn.click();
+      }
+      return;
+    }
+
+    // Focus study card shortcuts
+    if (state.activeStage === 'study' && state.studyMode === 'focus') {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        document.getElementById('btn-focus-next')?.click();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        document.getElementById('btn-focus-prev')?.click();
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        document.getElementById('btn-focus-reveal')?.click();
+      } else if (e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        const card = document.querySelector('[data-speak]');
+        if (card) card.click();
+      }
+      return;
+    }
+
+    // Keyboard speed sieve shortcuts for Stage 1 / Stage 3 / Stage 4
+    const modalOpen = document.getElementById('detail-modal').classList.contains('show');
+    if (!modalOpen && ['triage', 'sieve2', 'review'].includes(state.activeStage)) {
+      const k = e.key.toLowerCase();
+      if (e.key === 'ArrowLeft' || k === 'h') {
+        e.preventDefault();
+        moveSieveCursor('left');
+      } else if (e.key === 'ArrowRight' || k === 'l') {
+        e.preventDefault();
+        moveSieveCursor('right');
+      } else if (e.key === 'ArrowUp' || k === 'k') {
+        e.preventDefault();
+        moveSieveCursor('up');
+      } else if (e.key === 'ArrowDown' || k === 'j') {
+        e.preventDefault();
+        moveSieveCursor('down');
+      } else if (e.code === 'Space' || e.key === 'Enter') {
+        e.preventDefault();
+        let chip = state.cursorWid ? document.querySelector('#main-area .word-chip.is-cursor') : null;
+        if (!chip) chip = moveSieveCursor('right');
+        if (chip && currentChipHandlers.left) currentChipHandlers.left(chip.dataset.wid, chip);
+      } else if (k === 's') {
+        e.preventDefault();
+        let chip = state.cursorWid ? document.querySelector('#main-area .word-chip.is-cursor') : null;
+        if (!chip) chip = moveSieveCursor('right');
+        if (chip && currentChipHandlers.right) currentChipHandlers.right(chip.dataset.wid, chip);
+      } else if (k === 'v') {
+        e.preventDefault();
+        let chip = state.cursorWid ? document.querySelector('#main-area .word-chip.is-cursor') : null;
+        if (!chip) chip = moveSieveCursor('right');
+        if (chip) {
+          const w = findWordById(chip.dataset.wid);
+          if (w) {
+            playTextAudio(w.cleanWord || w.word, state.listen.voice, 1);
+            const r = chip.getBoundingClientRect();
+            showPeekTooltip(w.id, { clientX: r.left, clientY: r.bottom });
+          }
+        }
+      } else if (k === 'm' && state.activeStage === 'sieve2') {
+        e.preventDefault();
+        state.sieve2Direction = state.sieve2Direction === 'zh2en' ? 'en2zh' : 'zh2en';
+        hidePeekTooltip();
+        scheduleSave();
+        renderSieve2Stage(document.getElementById('main-area'));
+        showToast(state.sieve2Direction === 'zh2en' ? '已切换：看中文回顾英文' : '已切换：看英文回顾中文');
+      }
+    }
+  });
+
+  // 11. Bootstrap
+  (async function init() {
+    try {
+      if (!state.manifest.books || !state.manifest.books.length) {
+        state.manifest = await apiFetch('/api/manifest');
+      }
+      if (!state.manifest.books.some((b) => b.id === state.activeBookId) && state.manifest.books.length) {
+        state.activeBookId = state.manifest.books[0].id;
+      }
+      await ensureBookLoaded(state.activeBookId);
+      renderAll();
+    } catch (err) {
+      document.getElementById('main-area').innerHTML = `<div class="empty-state">加载失败: ${escHtml(err.message)}</div>`;
+    }
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+{
+  "id": "sample",
+  "title": "样板词库 (Sample Vocabulary)",
+  "shortTitle": "样板词库",
+  "description": "1 个单元 · 3 个示例词汇（可替换为 wordbooks/ 中的词库或自制词库）",
+  "totalWords": 3,
+  "units": [
+    {
+      "id": "Unit 1",
+      "title": "Unit 1",
+      "wordCount": 3
+    }
+  ],
+  "words": [
+    {
+      "id": "sample:Unit 1:benediction",
+      "word": "benediction",
+      "cleanWord": "benediction",
+      "book": "sample",
+      "unit": "Unit 1",
+      "order": 1,
+      "rootGroup": "BENE",
+      "rootIntro": "BENE comes from the Latin for well. A benefit is a good result or effect; something beneficial produces good results.",
+      "phonetics": {
+        "uk": "ˌbɛnɪˈdɪkʃn",
+        "us": "ˌbɛnəˈdɪkʃən",
+        "respell": ""
+      },
+      "pos": "noun",
+      "zhMeaning": "[noun] 祝福；赐福祈祷",
+      "enMeaning": "A prayer that asks for God's blessing, especially a prayer that concludes a worship service.",
+      "contextExplanation": "由词根 bene（好、善）与 dict（说）组合，字面意思是“说好话”，引申为宗教仪式末尾或临别时的祝福祈祷。",
+      "examples": [
+        {
+          "en": "The bishop pronounced the benediction at the end of the service.",
+          "zh": "主教在礼拜结束时作了祝福祈祷。",
+          "source": "Sample"
+        }
+      ],
+      "cognates": [
+        "benefactor",
+        "beneficiary",
+        "benevolence"
+      ],
+      "rootBreakdown": "bene-（好、善） + dict（说、讲） + -ion（名词后缀，表行为） → 祝福",
+      "etymology": "源自拉丁语 benedictio（bene“好” + dicere“说”），原指祝福或祝颂。"
+    },
+    {
+      "id": "sample:Unit 1:benefactor",
+      "word": "benefactor",
+      "cleanWord": "benefactor",
+      "book": "sample",
+      "unit": "Unit 1",
+      "order": 2,
+      "rootGroup": "BENE",
+      "rootIntro": "BENE comes from the Latin for well. A benefit is a good result or effect; something beneficial produces good results.",
+      "phonetics": {
+        "uk": "ˈbɛnɪfaktə",
+        "us": "ˈbɛnəˌfæktər",
+        "respell": ""
+      },
+      "pos": "noun",
+      "zhMeaning": "[noun] 赞助人；捐助者；恩人",
+      "enMeaning": "Someone who helps another person or group, especially by giving money.",
+      "contextExplanation": "bene（好）加上 fact（做），即“做好事的人”，通常指资助学校、医院或个人发展的捐助者。",
+      "examples": [
+        {
+          "en": "An anonymous benefactor donated funds to build the new library.",
+          "zh": "一位匿名捐助者出资修建了新图书馆。",
+          "source": "Sample"
+        }
+      ],
+      "cognates": [
+        "benediction",
+        "beneficiary",
+        "benevolence"
+      ],
+      "rootBreakdown": "bene-（好、善） + fact（做、制造） + -or（名词后缀，表人） → 捐助者",
+      "etymology": "源自拉丁语 benefactor（bene“好” + facere“做”），意为施惠者、资助人。"
+    },
+    {
+      "id": "sample:Unit 1:amicable",
+      "word": "amicable",
+      "cleanWord": "amicable",
+      "book": "sample",
+      "unit": "Unit 1",
+      "order": 3,
+      "rootGroup": "AM",
+      "rootIntro": "AM comes from the Latin amare, to love. Amiable means friendly or good-natured.",
+      "phonetics": {
+        "uk": "ˈamɪkəbl",
+        "us": "ˈæməkəb(ə)l",
+        "respell": ""
+      },
+      "pos": "adjective",
+      "zhMeaning": "[adjective] 友好的；和睦的",
+      "enMeaning": "Characterized by friendliness and absence of discord.",
+      "contextExplanation": "常用来形容谈判、协议或双方在分歧之后保持克制与友善的关系，如 an amicable settlement。",
+      "examples": [
+        {
+          "en": "They reached an amicable agreement after hours of discussion.",
+          "zh": "经过数小时讨论，他们达成了友好协议。",
+          "source": "Sample"
+        }
+      ],
+      "cognates": [
+        "amiable",
+        "amity"
+      ],
+      "rootBreakdown": "am-（爱、友好） + -ic + -able（形容词后缀） → 友好的",
+      "etymology": "源自拉丁语 amicabilis，由 amicus（朋友）演变而来。"
+    }
+  ]
+}

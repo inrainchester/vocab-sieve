@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "books": [
+    {
+      "id": "sample",
+      "title": "样板词库 (Sample Vocabulary)",
+      "shortTitle": "样板词库",
+      "description": "1 个单元 · 3 个示例词汇（可替换为 wordbooks/ 中的词库或自制词库）",
+      "totalWords": 3,
+      "unitCount": 1,
+      "file": "sample.json"
+    }
+  ]
+}

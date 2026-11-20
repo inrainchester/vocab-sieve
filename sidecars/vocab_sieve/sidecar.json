@@ -1,0 +1,23 @@
+{
+  "command": "node",
+  "args": ["server.mjs"],
+  "description": "五阶段单词筛记面板（词库与界面解耦，支持多词库热切换）",
+  "display_name": "单词筛记",
+  "has_web_ui": true,
+  "restart_policy": "always",
+  "ui_config": {
+    "display_name": "单词筛记",
+    "views": [
+      {
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_AUX_PANE",
+        "path": "/",
+        "title": "单词筛记"
+      },
+      {
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_SIDEBAR",
+        "path": "/",
+        "title": "单词筛记"
+      }
+    ]
+  }
+}

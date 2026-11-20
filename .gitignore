@@ -1,0 +1,17 @@
+# Personal learning progress, local backups, and audio cache
+lexicon/user_progress.json
+lexicon/backup/
+lexicon/audio_cache/
+wordbooks/user_progress.json
+wordbooks/backup/
+wordbooks/audio_cache/
+
+# Temporary / OS / Build artifacts
+*.tmp
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc

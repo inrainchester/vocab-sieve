@@ -1,0 +1,7 @@
+{
+  "name": "vocab-sieve",
+  "displayName": "单词筛记 (Vocab Sieve)",
+  "version": "1.0.0",
+  "logo": "assets/icon.svg",
+  "description": "词库与界面解耦的五阶段单词筛记插件：初筛词墙、单元词根精学、二次筛选、乱序复习与极速听词模式"
+}

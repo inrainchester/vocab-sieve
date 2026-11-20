@@ -1,0 +1,15 @@
+{
+  "name": "vocab-sieve",
+  "version": "1.0.0",
+  "description": "词库与界面解耦的五阶段单词筛记工具（支持本地运行、Antigravity 插件及桌面/浏览器扩展打包）",
+  "type": "module",
+  "main": "start.mjs",
+  "scripts": {
+    "start": "node start.mjs",
+    "serve": "node start.mjs --no-open",
+    "check": "node start.mjs --check"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
