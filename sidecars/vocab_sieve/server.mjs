@@ -12,7 +12,7 @@ import {
   unlinkSync,
   statSync
 } from 'node:fs';
-import { dirname, join, basename } from 'node:path';
+import { dirname, join, basename, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const execFileAsync = promisify(execFile);
@@ -33,6 +33,8 @@ function resolveLexiconDir() {
   }
   const candidates = [
     join(__dirname, '..', '..', 'lexicon'),
+    join(homeDir, 'Documents', '博士资料', 'PKM_Vault', 'English_Mastery', '02_Vocabulary_Bank', 'lexicon'),
+    join(homeDir, 'Documents', 'English_Mastery', '02_Vocabulary_Bank', 'lexicon'),
     join(__dirname, 'lexicon')
   ];
   for (const c of candidates) {
@@ -55,13 +57,64 @@ if (!existsSync(BACKUP_DIR)) mkdirSync(BACKUP_DIR, { recursive: true });
 if (!existsSync(AUDIO_US_DIR)) mkdirSync(AUDIO_US_DIR, { recursive: true });
 if (!existsSync(AUDIO_UK_DIR)) mkdirSync(AUDIO_UK_DIR, { recursive: true });
 
+// Optional wordbook discovery directories (prioritize active lexicon/, then wordbooks/)
+const BOOK_DIRS = Array.from(
+  new Set(
+    [
+      LEXICON_DIR,
+      join(__dirname, '..', '..', 'wordbooks'),
+      join(LEXICON_DIR, '..', 'wordbooks')
+    ].map((d) => resolve(d))
+  )
+).filter((d) => existsSync(d));
+
+function resolveBookFilePath(fileName) {
+  const cleanName = basename(String(fileName || ''));
+  if (!cleanName) return null;
+  for (const dir of BOOK_DIRS) {
+    const candidate = join(dir, cleanName);
+    if (existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-cache, no-store, must-revalidate',
   'Pragma': 'no-cache',
   'Expires': '0'
 };
 
-// 2. Data helpers
+// 2. Data helpers (lightweight manifest caching + single-book memory mount)
+const metaMemCache = new Map(); // filePath -> { mtimeMs, meta }
+const bookMemCache = new Map(); // holds at most 1 currently mounted book
+
+function readBookMeta(filePath, fileName) {
+  try {
+    const mtimeMs = statSync(filePath).mtimeMs;
+    const cached = metaMemCache.get(filePath);
+    if (cached && cached.mtimeMs === mtimeMs) {
+      return cached.meta;
+    }
+    const parsed = JSON.parse(readFileSync(filePath, 'utf-8'));
+    let meta = null;
+    if (parsed && Array.isArray(parsed.words)) {
+      meta = {
+        id: parsed.id || fileName.replace(/\.json$/, ''),
+        title: parsed.title || fileName.replace(/\.json$/, ''),
+        shortTitle: parsed.shortTitle || parsed.id || fileName.replace(/\.json$/, ''),
+        description: parsed.description || `${parsed.words.length} 词`,
+        totalWords: parsed.words.length,
+        unitCount: Array.isArray(parsed.units) ? parsed.units.length : 0,
+        file: fileName
+      };
+    }
+    metaMemCache.set(filePath, { mtimeMs, meta });
+    return meta;
+  } catch (_) {
+    return null;
+  }
+}
+
 function loadManifest() {
   let manifest = { version: '1.0.0', books: [] };
   if (existsSync(MANIFEST_FILE)) {
@@ -70,43 +123,45 @@ function loadManifest() {
     } catch (_) {}
   }
   if (!Array.isArray(manifest.books)) manifest.books = [];
-  // Keep only entries whose JSON file actually exists in LEXICON_DIR
+  // Keep only entries whose JSON file actually exists in BOOK_DIRS
   manifest.books = manifest.books.filter(
-    (b) => b && b.file && existsSync(join(LEXICON_DIR, basename(b.file)))
+    (b) => b && b.file && Boolean(resolveBookFilePath(basename(b.file)))
   );
   const knownFiles = new Set(manifest.books.map((b) => basename(b.file)));
-  // Auto-discover any extra wordbook JSON placed in LEXICON_DIR
-  try {
-    for (const f of readdirSync(LEXICON_DIR).sort()) {
-      if (
-        !f.endsWith('.json') ||
-        f === 'manifest.json' ||
-        f === 'user_progress.json' ||
-        f.endsWith('.tmp') ||
-        knownFiles.has(f)
-      ) {
-        continue;
-      }
-      try {
-        const parsed = JSON.parse(readFileSync(join(LEXICON_DIR, f), 'utf-8'));
-        if (parsed && Array.isArray(parsed.words)) {
-          manifest.books.push({
-            id: parsed.id || f.replace(/\.json$/, ''),
-            title: parsed.title || f.replace(/\.json$/, ''),
-            shortTitle: parsed.shortTitle || parsed.id || f.replace(/\.json$/, ''),
-            description: parsed.description || `${parsed.words.length} 词`,
-            totalWords: parsed.words.length,
-            unitCount: Array.isArray(parsed.units) ? parsed.units.length : 0,
-            file: f
-          });
+  const knownIds = new Set(manifest.books.map((b) => b.id));
+
+  // Auto-discover any extra wordbook JSON placed in BOOK_DIRS (cached by mtimeMs)
+  for (const dir of BOOK_DIRS) {
+    try {
+      for (const f of readdirSync(dir).sort()) {
+        if (
+          !f.endsWith('.json') ||
+          f === 'manifest.json' ||
+          f === 'user_progress.json' ||
+          f.endsWith('.tmp') ||
+          knownFiles.has(f)
+        ) {
+          continue;
         }
-      } catch (_) {}
-    }
-  } catch (_) {}
+        const meta = readBookMeta(join(dir, f), f);
+        if (meta && !knownIds.has(meta.id)) {
+          manifest.books.push({ ...meta });
+          knownFiles.add(f);
+          knownIds.add(meta.id);
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Prefer official/custom books ahead of demo sample when others exist
+  if (manifest.books.some((b) => b.id !== 'sample')) {
+    manifest.books = [
+      ...manifest.books.filter((b) => b.id !== 'sample'),
+      ...manifest.books.filter((b) => b.id === 'sample')
+    ];
+  }
   return manifest;
 }
-
-const bookMemCache = new Map();
 
 function loadBook(bookId) {
   const manifest = loadManifest();
@@ -114,8 +169,8 @@ function loadBook(bookId) {
   const cleanId = String(bookId || defaultId).replace(/[^a-zA-Z0-9_-]/g, '');
   const entry = (manifest.books || []).find((b) => b.id === cleanId);
   const fileName = entry ? basename(entry.file) : `${cleanId}.json`;
-  const target = join(LEXICON_DIR, fileName);
-  if (!existsSync(target)) {
+  const target = resolveBookFilePath(fileName);
+  if (!target) {
     return null;
   }
   try {
@@ -125,6 +180,8 @@ function loadBook(bookId) {
       return cached.raw;
     }
     const raw = readFileSync(target, 'utf-8');
+    // Mount only 1 book in backend memory at a time
+    bookMemCache.clear();
     bookMemCache.set(target, { mtimeMs, raw });
     return raw;
   } catch (_) {

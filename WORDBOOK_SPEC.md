@@ -4,18 +4,19 @@
 
 ---
 
-## 一、词库如何启用与切换
+## 一、词库发现与单本按需挂载
 
 仓库中有两个与词库相关的目录：
 
-- `wordbooks/`：成品词库仓库（预置 `mwvb.json`、`wpme.json`、`cet6.json`），**不会**直接出现在软件里。
-- `lexicon/`：运行时激活目录。软件启动时会自动加载这里的所有 `.json` 词库（除 `manifest.json` 和 `user_progress.json` 之外）。
+- `lexicon/`：运行时词库与进度目录（存放 `manifest.json`、`user_progress.json`、音频缓存及自制词库）。
+- `wordbooks/`：成品词库仓库（预置 `mwvb.json`、`wpme.json`、`cet6.json`）。
 
-操作方式：
+工作方式：
 
-1. **启用某本词库**：把 `wordbooks/` 里的 `.json` 文件（或你自己生成的 `.json`）**复制**到 `lexicon/` 目录下，刷新界面即可在左上角词库栏看到。
-2. **停用某本词库**：把不需要的 `.json` 从 `lexicon/` 移走或删除即可（例如启用自己的词库后，可以删掉演示用的 `lexicon/sample.json`）。
-3. **进度隔离**：你的刷词记录保存在 `lexicon/user_progress.json`，每日备份在 `lexicon/backup/`，按每条词的 `id` 存储，增删词库不会丢失其他词库的进度。
+1. **自动扫描目录，无需手动复制**：启动时后端会扫描 `lexicon/` 与 `wordbooks/` 中的 `.json` 词库（除 `manifest.json`、`user_progress.json` 和临时文件外），在左上角下拉框列出全部可选词书，无需把 `wordbooks/` 里的内置词库再手动复制到 `lexicon/`。
+2. **一次只挂载一本，不拖慢启动**：`manifest.json` 与基于文件修改时间的内存缓存只保存书名和词数等轻量信息，不重复全量解析未打开的词书；前后端均只把**当前选中的这一本**词书挂载到内存中，切换词书时自动卸载上一本。
+3. **自制或精简词库**：把自制 `.json` 放入 `lexicon/`（或 `wordbooks/`）后刷新界面即可出现在下拉框中；若想从列表隐藏某本词书（如演示用的 `lexicon/sample.json`），移走或删除对应 `.json` 文件即可。
+4. **进度隔离**：你的刷词记录保存在 `lexicon/user_progress.json`，每日备份在 `lexicon/backup/`，按每条词的 `id` 存储，增删或切换词库不会丢失其他词库的进度。
 
 > 如果想让词库放在电脑上的其他文件夹（例如同步盘），可以设置环境变量 `VOCAB_LEXICON_DIR=/你的词库路径`，或者把路径写入 `~/.gemini/config/vocab_lexicon_path.txt`。
 

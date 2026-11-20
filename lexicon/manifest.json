@@ -2,6 +2,33 @@
   "version": "1.0.0",
   "books": [
     {
+      "id": "mwvb",
+      "title": "Merriam-Webster's Vocabulary Builder (小绿书)",
+      "shortTitle": "小绿书 MWVB",
+      "description": "30 个单元 · 1,196 个核心词根词汇",
+      "totalWords": 1196,
+      "unitCount": 30,
+      "file": "mwvb.json"
+    },
+    {
+      "id": "wpme",
+      "title": "Word Power Made Easy (WPME)",
+      "shortTitle": "WPME",
+      "description": "14 个章节及附录 · 1,177 个词源词汇",
+      "totalWords": 1177,
+      "unitCount": 14,
+      "file": "wpme.json"
+    },
+    {
+      "id": "cet6",
+      "title": "六级词汇词根+联想记忆法 (乱序版)",
+      "shortTitle": "六级词汇 CET-6",
+      "description": "30 个 Word List · 2,218 个核心词汇",
+      "totalWords": 2218,
+      "unitCount": 30,
+      "file": "cet6.json"
+    },
+    {
       "id": "sample",
       "title": "样板词库 (Sample Vocabulary)",
       "shortTitle": "样板词库",

@@ -84,30 +84,12 @@
       flex-wrap: nowrap;
       min-width: 0;
     }
-    .book-tabs {
-      display: inline-flex;
-      flex-shrink: 0;
-      background: var(--surface-2);
-      border-radius: 7px;
-      padding: 2px;
-      border: 1px solid var(--border);
-    }
-    .book-tab {
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      padding: 3px 8px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 11.5px;
+    .book-select-compact {
+      min-width: 110px;
+      max-width: 195px;
+      flex: 0 1 auto;
       font-weight: 600;
-      white-space: nowrap;
-      transition: all 0.15s;
-    }
-    .book-tab.active {
-      background: var(--surface);
-      color: var(--text);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      text-overflow: ellipsis;
     }
     .unit-select-compact {
       min-width: 80px;
@@ -927,7 +909,7 @@
   <!-- Header -->
   <header class="topbar">
     <div class="topbar-row">
-      <div class="book-tabs" id="book-tabs"></div>
+      <select id="book-select" class="book-select-compact" title="切换当前挂载词书（一次仅挂载一本）"></select>
       <select id="unit-select" class="unit-select-compact" title="选择单元/章节"></select>
       <div class="spacer"></div>
       <div class="search-wrap">
@@ -1299,7 +1281,7 @@
     }
   }
 
-  // 6. Book Loading & O(1) Hash Indexing
+  // 6. Book Loading & O(1) Hash Indexing (Single-Book Mount)
   async function ensureBookLoaded(bookId) {
     if (state.booksCache[bookId]) return state.booksCache[bookId];
     const data = await apiFetch(`/api/book?id=${encodeURIComponent(bookId)}`);
@@ -1314,6 +1296,8 @@
     }
     data.wordMap = wordMap;
     data.wordLowerMap = wordLowerMap;
+    // Unmount previous book so browser keeps only the active book in memory
+    state.booksCache = {};
     state.booksCache[bookId] = data;
     return data;
   }
@@ -1476,29 +1460,46 @@
 
   // 7. Render Controls & Stats
   function renderBookTabs() {
-    const wrap = document.getElementById('book-tabs');
+    const sel = document.getElementById('book-select');
+    if (!sel) return;
     const books = state.manifest.books || [];
-    wrap.innerHTML = books
-      .map(
-        (b) =>
-          `<button class="book-tab ${b.id === state.activeBookId ? 'active' : ''}" data-book="${escHtml(b.id)}">${escHtml(b.shortTitle || b.title)}</button>`
-      )
+    if (!books.length) {
+      sel.innerHTML = '<option value="">暂无可用词书</option>';
+      sel.disabled = true;
+      return;
+    }
+    sel.disabled = false;
+    sel.innerHTML = books
+      .map((b) => {
+        const countStr = typeof b.totalWords === 'number' ? ` (${b.totalWords}词)` : '';
+        return `<option value="${escHtml(b.id)}" ${b.id === state.activeBookId ? 'selected' : ''}>${escHtml((b.shortTitle || b.title) + countStr)}</option>`;
+      })
       .join('');
-    wrap.querySelectorAll('.book-tab').forEach((btn) => {
-      btn.onclick = async () => {
-        const id = btn.dataset.book;
-        if (id === state.activeBookId) return;
-        stopListenSession();
-        state.activeBookId = id;
-        state.activeUnit = 'ALL';
-        state.sieve2Order = null;
-        state.reviewOrder = null;
-        state.reviewClearedIds.clear();
-        scheduleSave();
+    sel.value = state.activeBookId;
+    sel.onchange = async (e) => {
+      const id = e.target.value;
+      if (!id || id === state.activeBookId) return;
+      const prevBookId = state.activeBookId;
+      stopListenSession();
+      try {
         await ensureBookLoaded(id);
-        renderAll();
-      };
-    });
+      } catch (err) {
+        sel.value = prevBookId;
+        showToast(`切换词书失败: ${err.message}`);
+        return;
+      }
+      state.activeBookId = id;
+      state.activeUnit = 'ALL';
+      state.focusIndex = 0;
+      state.cursorWid = null;
+      state.sieve2Order = null;
+      state.reviewOrder = null;
+      state.reviewClearedIds.clear();
+      scheduleSave();
+      renderAll();
+      const meta = books.find((b) => b.id === id);
+      showToast(`已切换挂载：${(meta && (meta.shortTitle || meta.title)) || id}`);
+    };
   }
 
   function renderUnitSelector() {

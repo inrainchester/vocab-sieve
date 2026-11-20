@@ -22,10 +22,10 @@ vocab-sieve/
 ├── start.mjs                   # 跨平台一键独立启动脚本（零第三方依赖）
 ├── WORDBOOK_SPEC.md            # 词库 JSON 格式规范与自制词库教程
 ├── sidecars/vocab_sieve/       # 前端界面 (index.html) 与服务端 (server.mjs)
-├── lexicon/                    # 【运行目录】放在这里的 .json 词库会自动加载
+├── lexicon/                    # 【运行目录】存放进度 user_progress.json、音频缓存及自制词库
 │   ├── manifest.json
-│   └── sample.json             # 3 词极简样板词库（开箱即用）
-├── wordbooks/                  # 【成品词库包】按需复制到 lexicon/ 即可启用
+│   └── sample.json             # 3 词极简样板词库（可按需保留或删除）
+├── wordbooks/                  # 【成品词库包】自动发现供左上角下拉选择，一次只挂载一本
 │   ├── mwvb.json               # 小绿书 Merriam-Webster's Vocabulary Builder (1,196 词)
 │   ├── wpme.json               # Word Power Made Easy (1,177 词)
 │   └── cet6.json               # 六级词汇 CET-6 乱序版 (2,218 词)
@@ -34,7 +34,7 @@ vocab-sieve/
     └── template_words.csv      # 词表 CSV 样板
 ```
 
-- 默认仅激活 `lexicon/sample.json` 样板词库，方便确认界面与流程；**需要哪本词库，就从 `wordbooks/` 复制到 `lexicon/`**（复制完记得可以顺手删掉 `lexicon/sample.json`）。
+- 软件会自动扫描 `wordbooks/` 与 `lexicon/` 中的所有 `.json` 词库（轻量目录按文件修改时间缓存，无需手写或重复全量解析），打开时和切换词库时**一次只挂载当前选中的一本**，无需手动把 `wordbooks/` 里的内置词库复制到 `lexicon/`。
 - 学习进度保存在 `lexicon/user_progress.json`（已被 `.gitignore` 忽略），不会混入代码仓库。
 
 ---
@@ -46,7 +46,7 @@ vocab-sieve/
 ```text
 请帮我部署这个单词筛记工具（GitHub 地址：<填入你的仓库地址>）：
 1. 帮我 git clone 仓库到本地，并检查本机是否安装了 Node.js (>=18)。
-2. 词库按需选配：先问我需要 wordbooks/ 里的哪些词库（mwvb.json 小绿书 / wpme.json WPME / cet6.json 六级，或者我自己的词表），帮我把需要的词库复制到 lexicon/ 目录（不需要的保留在 wordbooks/，如果我选了别的词库可以把演示用的 lexicon/sample.json 删掉）。
+2. 词库说明：软件会自动扫描 wordbooks/ 和 lexicon/ 下的词库供左上角下拉选择，且采用“一次只挂载一本”的按需加载机制，无需手动复制内置词库；如果我只想保留特定几本词书，帮我从 wordbooks/ 或 lexicon/ 移除不需要的 .json 文件即可（比如可删掉演示用的 lexicon/sample.json）。
 3. 部署形态由我选择（根据我当前的操作系统推荐一种最省事的方案，并替我完成打包和验证）：
    - 方案 A（Antigravity 插件）：把整个仓库目录安装/链接到 ~/.gemini/config/plugins/vocab-sieve（Windows 为 %USERPROFILE%\.gemini\config\plugins\vocab-sieve），启用即可在侧边栏打开。
    - 方案 B（零打包本地运行）：直接用 node start.mjs 启动（会拉起独立 HTTP 服务并自动以浏览器 App 独立窗口打开）。
@@ -64,10 +64,7 @@ vocab-sieve/
 # 1. 进入仓库目录
 cd vocab-sieve
 
-# 2. 按需把 wordbooks/ 中的词库放进 lexicon/（例如启用小绿书和 WPME）
-cp wordbooks/mwvb.json wordbooks/wpme.json lexicon/
-
-# 3. 启动（自动拉起服务并打开独立浏览器窗口）
+# 2. 启动（自动发现 wordbooks/ 与 lexicon/ 中的词库，拉起服务并打开独立浏览器窗口）
 node start.mjs
 ```
 
