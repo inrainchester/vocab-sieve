@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>学习统计 · English Mastery</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-2: #f0f2f5;
+      --border: #e2e6ec;
+      --text: #18202c;
+      --text-muted: #5f6c7b;
+      --accent: #1d6f5c;
+      --accent-soft: rgba(29, 111, 92, 0.14);
+      --accent-hover: #155748;
+      --warn: #c26d18;
+      --warn-soft: #fdf2e4;
+      --danger: #b9382c;
+      --danger-soft: #fceceb;
+      --info: #2563eb;
+      --info-soft: #eaf1fe;
+      --pass: #0d9488;
+      --pass-soft: rgba(13, 148, 136, 0.13);
+      --shadow: 0 2px 10px rgba(16, 24, 40, 0.06);
+      --radius: 10px;
+      --grid-line: rgba(100, 116, 139, 0.14);
+    }
+
+    html.dark {
+      --bg: #14171c;
+      --surface: #1d2128;
+      --surface-2: #252a33;
+      --border: #2f3642;
+      --text: #e8ecf2;
+      --text-muted: #9aa5b5;
+      --accent: #3cb393;
+      --accent-soft: rgba(60, 179, 147, 0.16);
+      --accent-hover: #4ec8a7;
+      --warn: #e5993e;
+      --warn-soft: rgba(229, 153, 62, 0.15);
+      --danger: #e26458;
+      --danger-soft: rgba(226, 100, 88, 0.16);
+      --info: #60a5fa;
+      --info-soft: rgba(96, 165, 250, 0.16);
+      --pass: #2dd4bf;
+      --pass-soft: rgba(45, 212, 191, 0.16);
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+      --grid-line: rgba(148, 163, 184, 0.14);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Top Header */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 7px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    .module-tabs {
+      display: inline-flex;
+      align-items: center;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .module-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .module-tab:hover { color: var(--text); }
+    .module-tab.active {
+      background: var(--surface);
+      color: var(--accent);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    .module-tag-soon {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 0 4px;
+      border-radius: 4px;
+      background: var(--border);
+      color: var(--text-muted);
+    }
+
+    .spacer { flex: 1; min-width: 6px; }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    select {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      outline: none;
+      font-family: inherit;
+    }
+    select:focus { border-color: var(--accent); }
+
+    .seg-group {
+      display: inline-flex;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .seg-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      text-decoration: none;
+      transition: all 0.14s;
+      user-select: none;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-sm { padding: 3px 8px; font-size: 11.5px; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #fff;
+    }
+
+    /* Main Scrollable Body */
+    .main-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* KPI Strip */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+      gap: 10px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .kpi-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .kpi-tag {
+      font-size: 10.5px;
+      padding: 1px 6px;
+      border-radius: 99px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .kpi-val-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .kpi-val {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .kpi-val.accent { color: var(--accent); }
+    .kpi-val.warn { color: var(--warn); }
+    .kpi-val.info { color: var(--info); }
+    .kpi-unit {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .kpi-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .kpi-sub b { color: var(--text); font-weight: 600; }
+
+    /* Cards & Charts */
+    .panel-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-subtitle {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .legend-line {
+      width: 14px;
+      height: 2.5px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .legend-line.dashed {
+      background: repeating-linear-gradient(90deg, var(--warn) 0 4px, transparent 4px 7px);
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 220px;
+    }
+    .chart-wrap svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+    }
+    .chart-empty {
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+
+    /* Bottom Dual Column */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 860px) {
+      .bottom-grid {
+        grid-template-columns: 1.02fr 1.18fr;
+      }
+    }
+
+    /* Book & Unit Progress */
+    .book-summary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .book-summary-item {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-2);
+      cursor: pointer;
+      transition: border-color 0.14s, background 0.14s;
+    }
+    .book-summary-item:hover, .book-summary-item.active {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+    .progress-row-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .progress-row-title {
+      font-weight: 600;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .progress-row-nums {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .stacked-bar {
+      width: 100%;
+      height: 7px;
+      border-radius: 99px;
+      background: var(--border);
+      overflow: hidden;
+      display: flex;
+    }
+    .bar-seg-mastered { background: var(--info); height: 100%; }
+    .bar-seg-known { background: var(--accent); height: 100%; }
+    .bar-seg-learning { background: var(--warn); height: 100%; }
+
+    .unit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .unit-row {
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: var(--surface-2);
+    }
+
+    /* Hard Words List */
+    .hard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 440px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .hard-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      background: var(--surface-2);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hard-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .hard-word {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .hard-ipa {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-family: "SF Mono", Menlo, monospace;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      border-radius: 99px;
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+    .badge-learning { background: var(--warn-soft); color: var(--warn); }
+    .badge-known { background: var(--accent-soft); color: var(--accent); }
+    .badge-mastered { background: var(--info-soft); color: var(--info); }
+    .badge-danger { background: var(--danger-soft); color: var(--danger); }
+    .badge-star { background: var(--warn-soft); color: var(--warn); }
+    .badge-unit { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-weight: 500; }
+
+    .hard-meaning {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .hard-root {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Floating Chart Tooltip */
+    .chart-tooltip {
+      position: fixed;
+      z-index: 2000;
+      pointer-events: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+      font-size: 11.5px;
+      min-width: 172px;
+      display: none;
+    }
+    .chart-tooltip.show { display: block; }
+    .tt-date {
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 5px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .tt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 2px 0;
+      color: var(--text-muted);
+    }
+    .tt-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tt-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .tt-val {
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Reserved Modules */
+    .reserved-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .reserved-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+    .reserved-stat-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .reserved-stat-box .lbl { font-size: 11px; color: var(--text-muted); }
+    .reserved-stat-box .val { font-size: 18px; font-weight: 700; margin-top: 2px; }
+    .code-pre {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="module-tabs" id="module-tabs">
+      <button class="module-tab active" data-module="vocab">词汇筛记</button>
+      <button class="module-tab" data-module="dictation">句子默写 <span class="module-tag-soon">预留</span></button>
+      <button class="module-tab" data-module="recitation">骨架背诵 <span class="module-tag-soon">预留</span></button>
+      <button class="module-tab" data-module="listening">精听训练 <span class="module-tag-soon">预留</span></button>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="controls-group" id="vocab-controls">
+      <select id="book-filter" title="按词书筛选统计"></select>
+      <select id="range-filter" title="选择时间跨度">
+        <option value="14">近 14 天</option>
+        <option value="30">近 30 天</option>
+        <option value="all">全部记录</option>
+      </select>
+      <div class="seg-group" id="axis-mode-group" title="切换横轴展示方式">
+        <button class="seg-btn active" data-axis="calendar">日历连续轴</button>
+        <button class="seg-btn" data-axis="active">仅活跃日</button>
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <button class="btn btn-sm" id="btn-refresh" title="重新拉取最新统计">↻ 刷新</button>
+      <button class="btn btn-sm" id="btn-theme" title="切换深浅色主题">◐ 主题</button>
+      <a class="btn btn-sm btn-primary" id="btn-back-sieve" href="./" title="返回单词筛记主界面">← 返回筛词</a>
+    </div>
+  </header>
+
+  <main class="main-area" id="main-area">
+    <div class="container" id="dashboard-root"></div>
+  </main>
+</div>
+
+<div class="chart-tooltip" id="chart-tooltip"></div>
+
+<script>
+(function() {
+  // 1. Theme Sync (matches index.html)
+  const savedTheme = localStorage.getItem('vocab_sieve_theme');
+  if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+  window.addEventListener('message', (ev) => {
+    if (ev.data && ev.data.type === 'theme') {
+      const isDark = ev.data.theme === 'dark' || (ev.data.vars && String(ev.data.vars['--background'] || '').startsWith('#1'));
+      if (!localStorage.getItem('vocab_sieve_theme')) {
+        document.documentElement.classList.toggle('dark', isDark);
+      }
+    }
+  });
+
+  // 2. Tokenized API Helper
+  const urlParams = new URLSearchParams(window.location.search);
+  const sidecarToken = urlParams.get('token') || window.__SIDECAR_TOKEN__ || '';
+  function withToken(url) {
+    if (!sidecarToken) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(sidecarToken);
+  }
+  async function apiFetch(url, options = {}) {
+    const headers = new Headers(options.headers || {});
+    headers.set('Content-Type', 'application/json');
+    if (sidecarToken) headers.set('X-Sidecar-Token', sidecarToken);
+    const resp = await fetch(withToken(url), { ...options, headers });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return resp.json();
+  }
+
+  document.getElementById('btn-back-sieve').setAttribute('href', withToken('./'));
+
+  // 3. State
+  const state = {
+    stats: window.__INITIAL_STATS__ || null,
+    activeModule: 'vocab',
+    bookFilter: 'ALL',
+    range: '30',          // '14' | '30' | 'all'
+    axisMode: 'calendar', // 'calendar' | 'active'
+    barMode: 'grouped',   // 'grouped' | 'stacked'
+    onlyActiveUnits: true
+  };
+
+  // 4. Audio Playback for Hard Words
+  let activeAudioEl = null;
+  const audioBlobCache = new Map();
+
+  function stopAudio() {
+    if (activeAudioEl) {
+      activeAudioEl.pause();
+      activeAudioEl = null;
+    }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
+  async function playWordPronunciation(text) {
+    stopAudio();
+    const clean = String(text || '').replace(/\([^)]*\)/g, '').trim();
+    if (!clean) return;
+    const voice = (state.stats && state.stats.listenVoice) || 'Samantha';
+    if (voice !== 'WEB') {
+      const key = `${voice}|${clean}`;
+      let blobUrl = audioBlobCache.get(key);
+      if (!blobUrl) {
+        try {
+          const res = await apiFetch('/api/tts', {
+            method: 'POST',
+            body: JSON.stringify({ text: clean, voice, rate: 175 })
+          });
+          if (res && res.status === 'ok' && res.audioBase64) {
+            const bin = atob(res.audioBase64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            blobUrl = URL.createObjectURL(new Blob([bytes], { type: res.mimeType || 'audio/mpeg' }));
+            audioBlobCache.set(key, blobUrl);
+          }
+        } catch (_) {}
+      }
+      if (blobUrl) {
+        const audio = new Audio(blobUrl);
+        activeAudioEl = audio;
+        audio.play().catch(() => {});
+        return;
+      }
+    }
+    if (window.speechSynthesis) {
+      const u = new SpeechSynthesisUtterance(clean);
+      u.lang = voice === 'Daniel' ? 'en-GB' : 'en-US';
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }
+  }
+
+  // 5. Formatting & Series Helpers
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function addDaysStr(dateStr, deltaDays) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d + deltaDays);
+    const yy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  function shortDateLabel(dateStr) {
+    const parts = String(dateStr).split('-');
+    return parts.length === 3 ? `${parts[1]}-${parts[2]}` : dateStr;
+  }
+
+  function sumActions(a) {
+    if (!a) return 0;
+    return (
+      (a.triage_known || 0) +
+      (a.sieve2_mastered || 0) +
+      (a.study_touch || 0) +
+      (a.review_pass || 0) +
+      (a.review_fail || 0) +
+      (a.listen_pass || 0) +
+      (a.listen_miss || 0)
+    );
+  }
+
+  function pickDayScope(dayObj, bookId) {
+    if (!dayObj) {
+      return {
+        actions: { triage_known: 0, sieve2_mastered: 0, study_touch: 0, review_pass: 0, review_fail: 0, listen_pass: 0, listen_miss: 0, starred_add: 0 },
+        snapshot: { known: 0, mastered: 0, learning: 0, starred: 0 }
+      };
+    }
+    if (bookId === 'ALL') {
+      return {
+        actions: dayObj.actions || {},
+        snapshot: dayObj.snapshot || {}
+      };
+    }
+    const bb = (dayObj.byBook && dayObj.byBook[bookId]) || {};
+    return {
+      actions: bb.actions || {},
+      snapshot: bb.snapshot || {}
+    };
+  }
+
+  function buildTimelineSeries() {
+    const stats = state.stats;
+    if (!stats || !stats.vocab) return [];
+    const daysMap = stats.vocab.days || {};
+    const bookId = state.bookFilter;
+    const today = stats.today;
+    const rawDates = Object.keys(daysMap).sort();
+
+    if (!rawDates.length) {
+      return [{
+        date: today,
+        isActive: false,
+        actions: pickDayScope(null, bookId).actions,
+        snapshot: getCurrentSummaryForScope().snapshotFallback
+      }];
+    }
+
+    const firstDate = rawDates[0];
+    const lastRecorded = rawDates[rawDates.length - 1];
+    const endDate = today && today > lastRecorded ? today : lastRecorded;
+
+    // Build full chronological carry-forward first so snapshots are always accurate
+    const calendarPoints = [];
+    let curDate = firstDate;
+    let carrySnap = { known: 0, mastered: 0, learning: 0, starred: 0 };
+    let guard = 0;
+
+    while (curDate <= endDate && guard < 1500) {
+      guard += 1;
+      const rawDay = daysMap[curDate];
+      const scoped = pickDayScope(rawDay, bookId);
+      const actionTotal = sumActions(scoped.actions);
+      const hasSnap = rawDay && (bookId === 'ALL' ? Boolean(rawDay.snapshot) : Boolean(rawDay.byBook && rawDay.byBook[bookId] && rawDay.byBook[bookId].snapshot));
+      if (hasSnap) {
+        carrySnap = {
+          known: Number(scoped.snapshot.known) || 0,
+          mastered: Number(scoped.snapshot.mastered) || 0,
+          learning: Number(scoped.snapshot.learning) || 0,
+          starred: Number(scoped.snapshot.starred) || 0
+        };
+      }
+      calendarPoints.push({
+        date: curDate,
+        isActive: actionTotal > 0,
+        actions: {
+          triage_known: Number(scoped.actions.triage_known) || 0,
+          sieve2_mastered: Number(scoped.actions.sieve2_mastered) || 0,
+          study_touch: Number(scoped.actions.study_touch) || 0,
+          review_pass: Number(scoped.actions.review_pass) || 0,
+          review_fail: Number(scoped.actions.review_fail) || 0,
+          listen_pass: Number(scoped.actions.listen_pass) || 0,
+          listen_miss: Number(scoped.actions.listen_miss) || 0,
+          starred_add: Number(scoped.actions.starred_add) || 0
+        },
+        snapshot: { ...carrySnap }
+      });
+      curDate = addDaysStr(curDate, 1);
+    }
+
+    let filtered = state.axisMode === 'active'
+      ? calendarPoints.filter((pt) => pt.isActive)
+      : calendarPoints;
+
+    if (!filtered.length) filtered = calendarPoints.slice(-1);
+
+    if (state.range === '14') {
+      if (state.axisMode === 'calendar') {
+        const minDate = addDaysStr(endDate, -13);
+        filtered = filtered.filter((pt) => pt.date >= minDate);
+      } else {
+        filtered = filtered.slice(-14);
+      }
+    } else if (state.range === '30') {
+      if (state.axisMode === 'calendar') {
+        const minDate = addDaysStr(endDate, -29);
+        filtered = filtered.filter((pt) => pt.date >= minDate);
+      } else {
+        filtered = filtered.slice(-30);
+      }
+    }
+
+    return filtered;
+  }
+
+  function getCurrentSummaryForScope() {
+    const stats = state.stats;
+    const summaries = (stats && stats.vocab && stats.vocab.bookSummaries) || [];
+    if (state.bookFilter === 'ALL') {
+      const agg = summaries.reduce(
+        (acc, b) => {
+          acc.totalWords += b.totalWords || 0;
+          acc.known += b.known || 0;
+          acc.mastered += b.mastered || 0;
+          acc.learning += b.learning || 0;
+          acc.untouched += b.untouched || 0;
+          acc.starred += b.starred || 0;
+          return acc;
+        },
+        { totalWords: 0, known: 0, mastered: 0, learning: 0, untouched: 0, starred: 0 }
+      );
+      agg.donePct = agg.totalWords ? Math.round(((agg.known + agg.mastered) / agg.totalWords) * 100) : 0;
+      agg.snapshotFallback = { known: agg.known, mastered: agg.mastered, learning: agg.learning, starred: agg.starred };
+      return agg;
+    }
+    const found = summaries.find((b) => b.id === state.bookFilter) || {
+      totalWords: 0, known: 0, mastered: 0, learning: 0, untouched: 0, starred: 0, donePct: 0
+    };
+    return {
+      ...found,
+      snapshotFallback: { known: found.known, mastered: found.mastered, learning: found.learning, starred: found.starred }
+    };
+  }
+
+  // 6. Tooltip Helper
+  const tooltipEl = document.getElementById('chart-tooltip');
+  function showTooltip(ev, html) {
+    tooltipEl.innerHTML = html;
+    tooltipEl.classList.add('show');
+    const pad = 14;
+    const rect = tooltipEl.getBoundingClientRect();
+    let x = ev.clientX + pad;
+    let y = ev.clientY - rect.height / 2;
+    if (x + rect.width > window.innerWidth - 10) x = ev.clientX - rect.width - pad;
+    if (y < 10) y = 10;
+    if (y + rect.height > window.innerHeight - 10) y = window.innerHeight - rect.height - 10;
+    tooltipEl.style.left = x + 'px';
+    tooltipEl.style.top = y + 'px';
+  }
+  function hideTooltip() {
+    tooltipEl.classList.remove('show');
+  }
+
+  // 7. SVG Chart Builders
+  function niceTicks(maxVal, targetCount = 4) {
+    const safeMax = Math.max(4, maxVal);
+    const roughStep = safeMax / targetCount;
+    const pow10 = Math.pow(10, Math.floor(Math.log10(roughStep)));
+    const norm = roughStep / pow10;
+    let stepNorm = 1;
+    if (norm <= 1) stepNorm = 1;
+    else if (norm <= 2) stepNorm = 2;
+    else if (norm <= 5) stepNorm = 5;
+    else stepNorm = 10;
+    const step = Math.max(1, stepNorm * pow10);
+    const top = Math.ceil(safeMax / step) * step;
+    const ticks = [];
+    for (let v = 0; v <= top; v += step) ticks.push(v);
+    return { top, ticks };
+  }
+
+  function renderCurveChart(container, series) {
+    if (!container) return;
+    if (!series.length) {
+      container.innerHTML = '<div class="chart-empty">暂无每日存量曲线数据</div>';
+      return;
+    }
+
+    const W = Math.max(320, Math.floor(container.clientWidth || 720));
+    const H = 248;
+    const pad = { top: 18, right: 20, bottom: 32, left: 42 };
+    const plotW = W - pad.left - pad.right;
+    const plotH = H - pad.top - pad.bottom;
+
+    const processedArr = series.map((p) => (p.snapshot.known || 0) + (p.snapshot.mastered || 0));
+    const masteredArr = series.map((p) => p.snapshot.mastered || 0);
+    const learningArr = series.map((p) => p.snapshot.learning || 0);
+    const maxData = Math.max(1, ...processedArr, ...masteredArr, ...learningArr);
+    const { top, ticks } = niceTicks(maxData, 4);
+
+    const n = series.length;
+    const xAt = (i) => (n === 1 ? pad.left + plotW / 2 : pad.left + (i / (n - 1)) * plotW);
+    const yAt = (val) => pad.top + plotH - (val / top) * plotH;
+
+    const buildLinePath = (arr) =>
+      arr.map((v, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
+
+    const processedPath = buildLinePath(processedArr);
+    const masteredPath = buildLinePath(masteredArr);
+    const learningPath = buildLinePath(learningArr);
+
+    const areaPath =
+      n === 1
+        ? ''
+        : `${processedPath} L${xAt(n - 1).toFixed(1)},${(pad.top + plotH).toFixed(1)} L${xAt(0).toFixed(1)},${(pad.top + plotH).toFixed(1)} Z`;
+
+    // X-axis label thinning
+    const maxLabels = Math.max(2, Math.floor(plotW / 58));
+    const labelStep = Math.max(1, Math.ceil(n / maxLabels));
+
+    const gridHtml = ticks
+      .map((t) => {
+        const y = yAt(t).toFixed(1);
+        return `
+          <line x1="${pad.left}" y1="${y}" x2="${W - pad.right}" y2="${y}" stroke="var(--grid-line)" stroke-width="1" />
+          <text x="${pad.left - 7}" y="${Number(y) + 3.5}" text-anchor="end" font-size="10.5" fill="var(--text-muted)">${t}</text>
+        `;
+      })
+      .join('');
+
+    const xLabelsHtml = series
+      .map((pt, i) => {
+        if (i !== 0 && i !== n - 1 && i % labelStep !== 0) return '';
+        if (i !== n - 1 && n - 1 - i < labelStep * 0.55 && i !== 0) return '';
+        return `<text x="${xAt(i).toFixed(1)}" y="${H - 10}" text-anchor="middle" font-size="10.5" fill="var(--text-muted)">${shortDateLabel(pt.date)}</text>`;
+      })
+      .join('');
+
+    const dotsHtml = series
+      .map((pt, i) => {
+        const cx = xAt(i).toFixed(1);
+        const showDot = n <= 35 || pt.isActive || i === n - 1;
+        if (!showDot) return '';
+        const r = pt.isActive ? 3.5 : 2.3;
+        return `
+          <circle cx="${cx}" cy="${yAt(processedArr[i]).toFixed(1)}" r="${r}" fill="var(--surface)" stroke="var(--accent)" stroke-width="2" />
+          <circle cx="${cx}" cy="${yAt(masteredArr[i]).toFixed(1)}" r="${r}" fill="var(--surface)" stroke="var(--info)" stroke-width="2" />
+          <circle cx="${cx}" cy="${yAt(learningArr[i]).toFixed(1)}" r="${r}" fill="var(--surface)" stroke="var(--warn)" stroke-width="2" />
+        `;
+      })
+      .join('');
+
+    container.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" id="curve-svg">
+        <defs>
+          <linearGradient id="area-accent-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.22" />
+            <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.01" />
+          </linearGradient>
+        </defs>
+        ${gridHtml}
+        ${xLabelsHtml}
+        ${areaPath ? `<path d="${areaPath}" fill="url(#area-accent-grad)" />` : ''}
+        <path d="${learningPath}" fill="none" stroke="var(--warn)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round" />
+        <path d="${masteredPath}" fill="none" stroke="var(--info)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" />
+        <path d="${processedPath}" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" />
+        ${dotsHtml}
+        <g id="curve-hover-layer" style="display:none;">
+          <line id="curve-crosshair" y1="${pad.top}" y2="${pad.top + plotH}" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="3 3" />
+          <circle id="curve-dot-proc" r="4.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2" />
+          <circle id="curve-dot-mast" r="4.5" fill="var(--info)" stroke="var(--surface)" stroke-width="2" />
+          <circle id="curve-dot-learn" r="4.5" fill="var(--warn)" stroke="var(--surface)" stroke-width="2" />
+        </g>
+        <rect id="curve-hit-area" x="${pad.left}" y="${pad.top}" width="${plotW}" height="${plotH}" fill="transparent" style="cursor:crosshair;" />
+      </svg>
+    `;
+
+    const hit = document.getElementById('curve-hit-area');
+    const hoverLayer = document.getElementById('curve-hover-layer');
+    const crosshair = document.getElementById('curve-crosshair');
+    const dotProc = document.getElementById('curve-dot-proc');
+    const dotMast = document.getElementById('curve-dot-mast');
+    const dotLearn = document.getElementById('curve-dot-learn');
+
+    hit.addEventListener('mousemove', (ev) => {
+      const svgRect = hit.getBoundingClientRect();
+      const relX = ev.clientX - svgRect.left;
+      const ratio = plotW > 0 ? Math.max(0, Math.min(1, relX / svgRect.width)) : 0;
+      const idx = n === 1 ? 0 : Math.round(ratio * (n - 1));
+      const pt = series[idx];
+      const prevPt = idx > 0 ? series[idx - 1] : null;
+      const cx = xAt(idx);
+
+      hoverLayer.style.display = '';
+      crosshair.setAttribute('x1', cx);
+      crosshair.setAttribute('x2', cx);
+      dotProc.setAttribute('cx', cx);
+      dotProc.setAttribute('cy', yAt(processedArr[idx]));
+      dotMast.setAttribute('cx', cx);
+      dotMast.setAttribute('cy', yAt(masteredArr[idx]));
+      dotLearn.setAttribute('cx', cx);
+      dotLearn.setAttribute('cy', yAt(learningArr[idx]));
+
+      const prevProc = prevPt ? (prevPt.snapshot.known || 0) + (prevPt.snapshot.mastered || 0) : null;
+      const diffProc = prevProc !== null ? processedArr[idx] - prevProc : 0;
+      const diffText = prevProc !== null && diffProc !== 0 ? ` (${diffProc > 0 ? '+' : ''}${diffProc})` : '';
+
+      const todayBadge = pt.date === (state.stats && state.stats.today) ? '今日' : (pt.isActive ? '有学习' : '无新动作');
+      showTooltip(ev, `
+        <div class="tt-date"><span>${pt.date}</span><span style="font-weight:500;color:var(--text-muted)">${todayBadge}</span></div>
+        <div class="tt-row"><span class="tt-label"><i class="tt-dot" style="background:var(--accent)"></i>累计已处理</span><span class="tt-val">${processedArr[idx]}${diffText}</span></div>
+        <div class="tt-row"><span class="tt-label"><i class="tt-dot" style="background:var(--info)"></i>二筛掌握</span><span class="tt-val">${masteredArr[idx]}</span></div>
+        <div class="tt-row"><span class="tt-label"><i class="tt-dot" style="background:var(--text-muted)"></i>初筛熟词</span><span class="tt-val">${pt.snapshot.known || 0}</span></div>
+        <div class="tt-row"><span class="tt-label"><i class="tt-dot" style="background:var(--warn)"></i>待攻克池</span><span class="tt-val">${learningArr[idx]}</span></div>
+        <div class="tt-row"><span class="tt-label">★ 星标重点</span><span class="tt-val">${pt.snapshot.starred || 0}</span></div>
+      `);
+    });
+
+    hit.addEventListener('mouseleave', () => {
+      hoverLayer.style.display = 'none';
+      hideTooltip();
+    });
+  }
+
+  function renderActionsChart(container, series) {
+    if (!container) return;
+    if (!series.length) {
+      container.innerHTML = '<div class="chart-empty">暂无每日学习动作数据</div>';
+      return;
+    }
+
+    const W = Math.max(320, Math.floor(container.clientWidth || 720));
+    const H = 224;
+    const pad = { top: 18, right: 18, bottom: 32, left: 42 };
+    const plotW = W - pad.left - pad.right;
+    const plotH = H - pad.top - pad.bottom;
+
+    const rows = series.map((pt) => {
+      const a = pt.actions;
+      const mastered = a.sieve2_mastered || 0;
+      const triage = a.triage_known || 0;
+      const reinforce = (a.review_pass || 0) + (a.listen_pass || 0);
+      const struggle = (a.review_fail || 0) + (a.listen_miss || 0);
+      return {
+        pt,
+        mastered,
+        triage,
+        reinforce,
+        struggle,
+        stackedSum: mastered + triage + reinforce + struggle,
+        maxBar: Math.max(mastered, triage, reinforce, struggle)
+      };
+    });
+
+    const isStacked = state.barMode === 'stacked';
+    const rawMax = Math.max(1, ...rows.map((r) => (isStacked ? r.stackedSum : r.maxBar)));
+    const { top, ticks } = niceTicks(rawMax, 4);
+
+    const n = rows.length;
+    const slotW = plotW / Math.max(1, n);
+    const yAt = (v) => pad.top + plotH - (v / top) * plotH;
+
+    const gridHtml = ticks
+      .map((t) => {
+        const y = yAt(t).toFixed(1);
+        return `
+          <line x1="${pad.left}" y1="${y}" x2="${W - pad.right}" y2="${y}" stroke="var(--grid-line)" stroke-width="1" />
+          <text x="${pad.left - 7}" y="${Number(y) + 3.5}" text-anchor="end" font-size="10.5" fill="var(--text-muted)">${t}</text>
+        `;
+      })
+      .join('');
+
+    const maxLabels = Math.max(2, Math.floor(plotW / 58));
+    const labelStep = Math.max(1, Math.ceil(n / maxLabels));
+    const xLabelsHtml = rows
+      .map((r, i) => {
+        if (i !== 0 && i !== n - 1 && i % labelStep !== 0) return '';
+        if (i !== n - 1 && n - 1 - i < labelStep * 0.55 && i !== 0) return '';
+        const cx = pad.left + (i + 0.5) * slotW;
+        return `<text x="${cx.toFixed(1)}" y="${H - 10}" text-anchor="middle" font-size="10.5" fill="var(--text-muted)">${shortDateLabel(r.pt.date)}</text>`;
+      })
+      .join('');
+
+    let barsHtml = '';
+    const metrics = [
+      { key: 'mastered', color: 'var(--info)' },
+      { key: 'triage', color: 'var(--accent)' },
+      { key: 'reinforce', color: 'var(--pass)' },
+      { key: 'struggle', color: 'var(--danger)' }
+    ];
+
+    rows.forEach((r, i) => {
+      const slotX = pad.left + i * slotW;
+      if (isStacked) {
+        const bw = Math.max(3, Math.min(28, slotW * 0.62));
+        const bx = slotX + (slotW - bw) / 2;
+        let curY = pad.top + plotH;
+        for (const m of metrics) {
+          const val = r[m.key];
+          if (val <= 0) continue;
+          const bh = Math.max(2, (val / top) * plotH);
+          curY -= bh;
+          barsHtml += `<rect x="${bx.toFixed(1)}" y="${curY.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1.5" fill="${m.color}" />`;
+        }
+      } else {
+        const groupW = Math.min(40, slotW * 0.78);
+        const gap = groupW > 18 ? 2 : 1;
+        const bw = Math.max(2, (groupW - gap * 3) / 4);
+        const startX = slotX + (slotW - (bw * 4 + gap * 3)) / 2;
+        metrics.forEach((m, mi) => {
+          const val = r[m.key];
+          if (val <= 0) return;
+          const bh = Math.max(2, (val / top) * plotH);
+          const bx = startX + mi * (bw + gap);
+          const by = pad.top + plotH - bh;
+          barsHtml += `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1.5" fill="${m.color}" />`;
+        });
+      }
+    });
+
+    container.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+        ${gridHtml}
+        ${xLabelsHtml}
+        <rect id="bar-hover-band" x="${pad.left}" y="${pad.top}" width="${slotW.toFixed(1)}" height="${plotH}" fill="var(--accent-soft)" style="display:none;opacity:0.55;" />
+        ${barsHtml}
+        <rect id="bar-hit-area" x="${pad.left}" y="${pad.top}" width="${plotW}" height="${plotH}" fill="transparent" style="cursor:pointer;" />
+      </svg>
+    `;
+
+    const hit = document.getElementById('bar-hit-area');
+    const band = document.getElementById('bar-hover-band');
+
+    hit.addEventListener('mousemove', (ev) => {
+      const rect = hit.getBoundingClientRect();
+      const relX = Math.max(0, Math.min(rect.width - 0.01, ev.clientX - rect.left));
+      const idx = Math.min(n - 1, Math.floor((relX / rect.width) * n));
+      const r = rows[idx];
+      const a = r.pt.actions;
+
+      band.style.display = '';
+      band.setAttribute('x', (pad.left + idx * slotW).toFixed(1));
+      band.setAttribute('width', slotW.toFixed(1));
+
+      showTooltip(ev, `
+        <div class="tt-date"><span>${r.pt.date}</span><span style="font-weight:500;color:var(--text-muted)">动作明细</span></div>
+        <div class="tt-row"><span class="tt-label"><i class="tt-dot" style="background:var(--info)"></i>二筛新掌握</span><span class="tt-val">${a.sieve2_mastered}</span></div>
+        <div class="tt-row"><span class="tt-label"><i class="tt-dot" style="background:var(--accent)"></i>初筛排除</span><span class="tt-val">${a.triage_known}</span></div>
+        <div class="tt-row"><span class="tt-label"><i class="tt-dot" style="background:var(--pass)"></i>复习 / 听词通过</span><span class="tt-val">${a.review_pass} / ${a.listen_pass}</span></div>
+        <div class="tt-row"><span class="tt-label"><i class="tt-dot" style="background:var(--danger)"></i>打回 / 盲听失误</span><span class="tt-val">${a.review_fail} / ${a.listen_miss}</span></div>
+        <div class="tt-row"><span class="tt-label">精学触达 · 加星</span><span class="tt-val">${a.study_touch} · ${a.starred_add}</span></div>
+      `);
+    });
+
+    hit.addEventListener('mouseleave', () => {
+      band.style.display = 'none';
+      hideTooltip();
+    });
+  }
+
+  // 8. Section Renderers
+  function renderBookSelect() {
+    const sel = document.getElementById('book-filter');
+    const summaries = (state.stats && state.stats.vocab && state.stats.vocab.bookSummaries) || [];
+    const totalAll = summaries.reduce((s, b) => s + (b.totalWords || 0), 0);
+    let opts = `<option value="ALL">全部词书 (${totalAll} 词)</option>`;
+    for (const b of summaries) {
+      opts += `<option value="${escHtml(b.id)}" ${state.bookFilter === b.id ? 'selected' : ''}>${escHtml(b.shortTitle || b.title)} (${b.totalWords} 词)</option>`;
+    }
+    sel.innerHTML = opts;
+    sel.value = state.bookFilter;
+  }
+
+  function renderReservedModuleView(root) {
+    const modKey = state.activeModule;
+    const mods = (state.stats && state.stats.reservedModules) || {};
+    const m = mods[modKey] || {};
+    const descMap = {
+      dictation: {
+        title: '句子默写统计（预留扩展模块）',
+        desc: '后续将对接每日情境翻译与默写记录，统计每日默写句数、拼写出错率与高频易错词演化。',
+        metrics: [
+          { lbl: '数据源目录', val: m.dir || '01_Daily_Practice' },
+          { lbl: '现有练习日志', val: `${m.fileCount || 0} 篇` },
+          { lbl: '最近练习文件', val: m.latestFile || '无' }
+        ]
+      },
+      recitation: {
+        title: '黄金骨架背诵统计（预留扩展模块）',
+        desc: '后续将统计每日骨架句背诵打卡、句型库覆盖率与防呆避坑锚点掌握情况。',
+        metrics: [
+          { lbl: '数据源目录', val: m.dir || '04_Recitation_Bank' },
+          { lbl: '已录入天数', val: `${m.dayCount || 0} 天` },
+          { lbl: '黄金骨架句数', val: `${m.sentenceCount || 0} 句` }
+        ]
+      },
+      listening: {
+        title: '精听训练统计（预留扩展模块）',
+        desc: '后续将记录长音频盲听遍数、逐句听写还原率与连读/弱读错题回溯曲线。',
+        metrics: [
+          { lbl: '数据源目录', val: m.dir || '05_Listening_Bank' },
+          { lbl: '精听笔记数', val: `${m.fileCount || 0} 篇` },
+          { lbl: '音频文件数', val: `${m.audioCount || 0} 个` }
+        ]
+      }
+    };
+
+    const cfg = descMap[modKey] || descMap.dictation;
+    root.innerHTML = `
+      <div class="reserved-card">
+        <div>
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:4px;">${escHtml(cfg.title)}</h2>
+          <p style="color:var(--text-muted);font-size:12.5px;">${escHtml(cfg.desc)}</p>
+        </div>
+        <div class="reserved-meta-grid">
+          ${cfg.metrics
+            .map(
+              (item) => `
+            <div class="reserved-stat-box">
+              <div class="lbl">${escHtml(item.lbl)}</div>
+              <div class="val">${escHtml(String(item.val))}</div>
+            </div>
+          `
+            )
+            .join('')}
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">已在 study_stats.json 顶层预留独立数据槽位：</div>
+          <pre class="code-pre">{
+  "version": 1,
+  "cutoffHour": 4,
+  "vocab": { "days": { "YYYY-MM-DD": { "actions": {...}, "snapshot": {...}, "byBook": {...} } } },
+  "dictation": {},   // 预留：句子默写每日曲线
+  "recitation": {},  // 预留：骨架背诵打卡与掌握度
+  "listening": {}    // 预留：精听训练记录
+}</pre>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderVocabDashboard(root) {
+    const stats = state.stats;
+    if (!stats || !stats.vocab) {
+      root.innerHTML = '<div class="chart-empty">无法加载统计数据</div>';
+      return;
+    }
+
+    const summary = getCurrentSummaryForScope();
+    const series = buildTimelineSeries();
+    const todayStr = stats.today;
+    const todayRaw = (stats.vocab.days && stats.vocab.days[todayStr]) || null;
+    const todayActions = pickDayScope(todayRaw, state.bookFilter).actions;
+    const todayEffective =
+      (todayActions.sieve2_mastered || 0) +
+      (todayActions.triage_known || 0) +
+      (todayActions.study_touch || 0) +
+      (todayActions.review_pass || 0) +
+      (todayActions.listen_pass || 0);
+    const todayMistakes = (todayActions.review_fail || 0) + (todayActions.listen_miss || 0);
+
+    // Aggregate active days & review/listen pass rate across all recorded days in selected book scope
+    const allRecordedDays = Object.keys(stats.vocab.days || {});
+    let activeDaysCount = 0;
+    let totalPass = 0;
+    let totalFail = 0;
+    for (const d of allRecordedDays) {
+      const a = pickDayScope(stats.vocab.days[d], state.bookFilter).actions;
+      if (sumActions(a) > 0) activeDaysCount += 1;
+      totalPass += (a.review_pass || 0) + (a.listen_pass || 0);
+      totalFail += (a.review_fail || 0) + (a.listen_miss || 0);
+    }
+    const testTotal = totalPass + totalFail;
+    const hitRateStr = testTotal > 0 ? `${Math.round((totalPass / testTotal) * 100)}% (${totalPass}/${testTotal})` : '暂无复习/听词记录';
+
+    const processedTotal = (summary.known || 0) + (summary.mastered || 0);
+
+    // Book summaries & Unit breakdown
+    const bookSummaries = stats.vocab.bookSummaries || [];
+    const targetBookForUnits =
+      state.bookFilter !== 'ALL'
+        ? state.bookFilter
+        : (stats.activeBook || (bookSummaries[0] && bookSummaries[0].id) || '');
+    const targetBookMeta = bookSummaries.find((b) => b.id === targetBookForUnits);
+    const allUnits = (stats.vocab.unitBreakdowns && stats.vocab.unitBreakdowns[targetBookForUnits]) || [];
+    const activeUnits = allUnits.filter((u) => u.known + u.mastered + u.learning > 0);
+    const displayUnits = state.onlyActiveUnits ? (activeUnits.length ? activeUnits : allUnits.slice(0, 8)) : allUnits;
+
+    // Hard words filtered by book
+    const allHard = stats.vocab.hardWords || [];
+    const filteredHard = state.bookFilter === 'ALL' ? allHard : allHard.filter((w) => w.bookId === state.bookFilter);
+
+    root.innerHTML = `
+      <!-- KPI Cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span>累计已处理词汇</span>
+            <span class="kpi-tag">${summary.donePct}%</span>
+          </div>
+          <div class="kpi-val-row">
+            <span class="kpi-val accent">${processedTotal}</span>
+            <span class="kpi-unit">/ ${summary.totalWords} 词</span>
+          </div>
+          <div class="kpi-sub">
+            <span>二筛掌握 <b>${summary.mastered}</b></span>
+            <span>初筛熟词 <b>${summary.known}</b></span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span>待攻克生词池</span>
+            <span class="kpi-tag">存量</span>
+          </div>
+          <div class="kpi-val-row">
+            <span class="kpi-val warn">${summary.learning}</span>
+            <span class="kpi-unit">词</span>
+          </div>
+          <div class="kpi-sub">
+            <span>★ 星标 <b>${summary.starred}</b></span>
+            <span>未触达 <b>${summary.untouched}</b></span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span>今日有效动作</span>
+            <span class="kpi-tag">04:00 切日 · ${shortDateLabel(todayStr)}</span>
+          </div>
+          <div class="kpi-val-row">
+            <span class="kpi-val info">${todayEffective}</span>
+            <span class="kpi-unit">次${todayMistakes ? ` (+${todayMistakes} 卡壳)` : ''}</span>
+          </div>
+          <div class="kpi-sub">
+            <span>二筛 <b>${todayActions.sieve2_mastered || 0}</b></span>
+            <span>初筛 <b>${todayActions.triage_known || 0}</b></span>
+            <span>巩固 <b>${(todayActions.review_pass || 0) + (todayActions.listen_pass || 0)}</b></span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span>学习韧性与命中率</span>
+            <span class="kpi-tag">累计</span>
+          </div>
+          <div class="kpi-val-row">
+            <span class="kpi-val">${activeDaysCount}</span>
+            <span class="kpi-unit">活跃学习天</span>
+          </div>
+          <div class="kpi-sub">
+            <span>盲听/复习通过率 <b>${escHtml(hitRateStr)}</b></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chart 1: Inventory & Cumulative Curve -->
+      <section class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            每日词库存量与累计攻克曲线
+            <span class="panel-subtitle">区分初筛熟词、二筛真正掌握与待攻克池收敛趋势</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-item"><span class="legend-line" style="background:var(--accent)"></span>累计已处理</span>
+            <span class="legend-item"><span class="legend-line" style="background:var(--info)"></span>二筛掌握</span>
+            <span class="legend-item"><span class="legend-line dashed"></span>待攻克池</span>
+          </div>
+        </div>
+        <div class="chart-wrap" id="curve-chart-wrap"></div>
+      </section>
+
+      <!-- Chart 2: Daily Effective Actions Breakdown -->
+      <section class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            每日有效动作拆解
+            <span class="panel-subtitle">看清每天是摸底初筛、真正啃下生词，还是巩固复习</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-swatch" style="background:var(--info)"></span>二筛掌握</span>
+              <span class="legend-item"><span class="legend-swatch" style="background:var(--accent)"></span>初筛排除</span>
+              <span class="legend-item"><span class="legend-swatch" style="background:var(--pass)"></span>复习/听词通过</span>
+              <span class="legend-item"><span class="legend-swatch" style="background:var(--danger)"></span>打回/盲听失误</span>
+            </div>
+            <div class="seg-group" id="bar-mode-group">
+              <button class="seg-btn ${state.barMode === 'grouped' ? 'active' : ''}" data-barmode="grouped">分组</button>
+              <button class="seg-btn ${state.barMode === 'stacked' ? 'active' : ''}" data-barmode="stacked">堆叠</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap" id="actions-chart-wrap" style="min-height:200px;"></div>
+      </section>
+
+      <!-- Bottom Dual Grid -->
+      <section class="bottom-grid">
+        <!-- Left: Books & Units Progress -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">
+              词书与章节攻克进度
+              <span class="panel-subtitle">${escHtml((targetBookMeta && (targetBookMeta.shortTitle || targetBookMeta.title)) || '')}</span>
+            </div>
+            <button class="btn btn-sm" id="btn-toggle-units">
+              ${state.onlyActiveUnits ? `仅已开启章节 (${activeUnits.length}/${allUnits.length})` : `全部章节 (${allUnits.length})`}
+            </button>
+          </div>
+
+          ${state.bookFilter === 'ALL' ? `
+            <div class="book-summary-list">
+              ${bookSummaries.map((b) => {
+                const t = Math.max(1, b.totalWords);
+                const wM = ((b.mastered / t) * 100).toFixed(2);
+                const wK = ((b.known / t) * 100).toFixed(2);
+                const wL = ((b.learning / t) * 100).toFixed(2);
+                return `
+                  <div class="book-summary-item ${b.id === targetBookForUnits ? 'active' : ''}" data-pick-book="${escHtml(b.id)}" title="点击筛选该词书统计">
+                    <div class="progress-row-head">
+                      <span class="progress-row-title">${escHtml(b.shortTitle || b.title)}</span>
+                      <span class="progress-row-nums">掌握 ${b.mastered} · 初筛 ${b.known} · 待攻克 ${b.learning} / ${b.totalWords} (${b.donePct}%)</span>
+                    </div>
+                    <div class="stacked-bar">
+                      <div class="bar-seg-mastered" style="width:${wM}%"></div>
+                      <div class="bar-seg-known" style="width:${wK}%"></div>
+                      <div class="bar-seg-learning" style="width:${wL}%"></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+
+          <div class="unit-list">
+            ${displayUnits.length ? displayUnits.map((u) => {
+              const t = Math.max(1, u.total);
+              const wM = ((u.mastered / t) * 100).toFixed(2);
+              const wK = ((u.known / t) * 100).toFixed(2);
+              const wL = ((u.learning / t) * 100).toFixed(2);
+              const pct = u.total ? Math.round(((u.known + u.mastered) / u.total) * 100) : 0;
+              return `
+                <div class="unit-row">
+                  <div class="progress-row-head">
+                    <span class="progress-row-title">${escHtml(u.title)}</span>
+                    <span class="progress-row-nums">掌握 ${u.mastered} · 初筛 ${u.known} · 待攻克 ${u.learning} / ${u.total} (${pct}%)</span>
+                  </div>
+                  <div class="stacked-bar">
+                    <div class="bar-seg-mastered" style="width:${wM}%"></div>
+                    <div class="bar-seg-known" style="width:${wK}%"></div>
+                    <div class="bar-seg-learning" style="width:${wL}%"></div>
+                  </div>
+                </div>
+              `;
+            }).join('') : '<div class="chart-empty" style="height:120px;">暂无章节进度</div>'}
+          </div>
+        </div>
+
+        <!-- Right: Hard Words Ranking -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">
+              高频卡壳与待攻克生词榜
+              <span class="panel-subtitle">按打回、听漏与星标权重排序 (${filteredHard.length} 词)</span>
+            </div>
+          </div>
+          <div class="hard-list">
+            ${filteredHard.length ? filteredHard.map((w) => {
+              const p = w.phonetics || {};
+              const ipa = p.us ? `/${p.us}/` : (p.uk ? `/${p.uk}/` : '');
+              const statusCls = w.status === 'mastered' ? 'badge-mastered' : (w.status === 'known' ? 'badge-known' : 'badge-learning');
+              const statusTxt = w.status === 'mastered' ? '已掌握' : (w.status === 'known' ? '初筛已认' : '待攻克');
+              const zhShort = (w.zhMeaning || w.enMeaning || '').split('\n')[0];
+              return `
+                <div class="hard-item">
+                  <div class="hard-head">
+                    <span class="hard-word">${escHtml(w.word)}</span>
+                    ${ipa ? `<span class="hard-ipa">${escHtml(ipa)}</span>` : ''}
+                    <button class="btn btn-sm" style="padding:1px 6px;" data-speak="${escHtml(w.cleanWord || w.word)}" title="播放发音">🔊</button>
+                    <span class="badge ${statusCls}">${statusTxt}</span>
+                    ${w.starred ? '<span class="badge badge-star">★ 星标</span>' : ''}
+                    ${w.review_fail_count > 0 ? `<span class="badge badge-danger">打回 ×${w.review_fail_count}</span>` : ''}
+                    ${w.audio_miss_count > 0 ? `<span class="badge badge-danger">听漏 ×${w.audio_miss_count}</span>` : ''}
+                    <span class="badge badge-unit">${escHtml(w.bookTitle || w.bookId)}${w.unit ? ` · ${escHtml(w.unit)}` : ''}</span>
+                  </div>
+                  ${zhShort ? `<div class="hard-meaning">${escHtml(zhShort)}</div>` : ''}
+                  ${w.rootBreakdown ? `<div class="hard-root">🧩 ${escHtml(w.rootBreakdown)}</div>` : ''}
+                </div>
+              `;
+            }).join('') : '<div class="chart-empty" style="height:180px;">当前范围暂无待攻克或卡壳词</div>'}
+          </div>
+        </div>
+      </section>
+    `;
+
+    // Render SVG Charts after layout
+    renderCurveChart(document.getElementById('curve-chart-wrap'), series);
+    renderActionsChart(document.getElementById('actions-chart-wrap'), series);
+
+    // Bind dynamic handlers
+    document.querySelectorAll('#bar-mode-group .seg-btn').forEach((btn) => {
+      btn.onclick = () => {
+        state.barMode = btn.dataset.barmode;
+        renderVocabDashboard(root);
+      };
+    });
+
+    const toggleUnitsBtn = document.getElementById('btn-toggle-units');
+    if (toggleUnitsBtn) {
+      toggleUnitsBtn.onclick = () => {
+        state.onlyActiveUnits = !state.onlyActiveUnits;
+        renderVocabDashboard(root);
+      };
+    }
+
+    document.querySelectorAll('[data-pick-book]').forEach((el) => {
+      el.onclick = () => {
+        state.bookFilter = el.dataset.pickBook;
+        document.getElementById('book-filter').value = state.bookFilter;
+        renderVocabDashboard(root);
+      };
+    });
+
+    root.querySelectorAll('[data-speak]').forEach((btn) => {
+      btn.onclick = () => playWordPronunciation(btn.dataset.speak);
+    });
+  }
+
+  function renderAll() {
+    const root = document.getElementById('dashboard-root');
+    const vocabControls = document.getElementById('vocab-controls');
+    if (state.activeModule === 'vocab') {
+      vocabControls.style.display = 'flex';
+      renderBookSelect();
+      renderVocabDashboard(root);
+    } else {
+      vocabControls.style.display = 'none';
+      renderReservedModuleView(root);
+    }
+  }
+
+  // 9. Global Event Wiring
+  document.querySelectorAll('#module-tabs .module-tab').forEach((btn) => {
+    btn.onclick = () => {
+      state.activeModule = btn.dataset.module;
+      document.querySelectorAll('#module-tabs .module-tab').forEach((b) => {
+        b.classList.toggle('active', b === btn);
+      });
+      renderAll();
+    };
+  });
+
+  document.getElementById('book-filter').onchange = (e) => {
+    state.bookFilter = e.target.value || 'ALL';
+    renderAll();
+  };
+
+  document.getElementById('range-filter').onchange = (e) => {
+    state.range = e.target.value || '30';
+    renderAll();
+  };
+
+  document.querySelectorAll('#axis-mode-group .seg-btn').forEach((btn) => {
+    btn.onclick = () => {
+      state.axisMode = btn.dataset.axis;
+      document.querySelectorAll('#axis-mode-group .seg-btn').forEach((b) => {
+        b.classList.toggle('active', b === btn);
+      });
+      renderAll();
+    };
+  });
+
+  document.getElementById('btn-theme').onclick = () => {
+    const nextDark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', nextDark);
+    localStorage.setItem('vocab_sieve_theme', nextDark ? 'dark' : 'light');
+  };
+
+  document.getElementById('btn-refresh').onclick = async () => {
+    try {
+      state.stats = await apiFetch('/api/stats');
+      renderAll();
+    } catch (err) {
+      alert('刷新统计失败: ' + err.message);
+    }
+  };
+
+  // Re-render SVG charts cleanly on resize
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (state.activeModule === 'vocab' && state.stats) {
+        const series = buildTimelineSeries();
+        renderCurveChart(document.getElementById('curve-chart-wrap'), series);
+        renderActionsChart(document.getElementById('actions-chart-wrap'), series);
+      }
+    }, 120);
+  });
+
+  // 10. Bootstrap
+  (async function init() {
+    if (!state.stats) {
+      try {
+        state.stats = await apiFetch('/api/stats');
+      } catch (err) {
+        document.getElementById('dashboard-root').innerHTML = `<div class="chart-empty">加载统计失败: ${escHtml(err.message)}</div>`;
+        return;
+      }
+    }
+    renderAll();
+  })();
+})();
+</script>
+</body>
+</html>

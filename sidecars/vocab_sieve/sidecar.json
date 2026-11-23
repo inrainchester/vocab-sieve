@@ -17,6 +17,16 @@
         "entrypoint": "SIDECAR_UI_ENTRYPOINT_SIDEBAR",
         "path": "/",
         "title": "单词筛记"
+      },
+      {
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_AUX_PANE",
+        "path": "/stats.html",
+        "title": "学习统计"
+      },
+      {
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_SIDEBAR",
+        "path": "/stats.html",
+        "title": "学习统计"
       }
     ]
   }
